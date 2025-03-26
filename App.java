@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class App {
-    private static final int ROW_COUNT = 21;
+    private static final int ROW_COUNT = 22;
     private static final int COLUMN_COUNT = 19;
     private static final int TILE_SIZE = 32;
     private static final int BOARD_WIDTH = COLUMN_COUNT * TILE_SIZE;
@@ -13,7 +13,7 @@ public class App {
 
     public static void main(String[] args) {
         // عکس بک گراند
-        BG = new ImageIcon("bg.jpg").getImage();
+        BG = new ImageIcon("Media/Images/bg.jpg").getImage();
 
         JFrame frame = new JFrame("Pac Man");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
