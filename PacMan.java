@@ -5,6 +5,7 @@ import java.util.Random;
 import javax.swing.*;
 
 public class PacMan extends JPanel implements ActionListener, KeyListener {
+
     class Block {
         int x;
         int y;
@@ -15,6 +16,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         int startX;
         int startY;
         char direction = 'U'; // U D L R
+        char nextDirection;
         int velocityX = 0;
         int velocityY = 0;
 
@@ -34,15 +36,20 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             updateVelocity();
             this.x += this.velocityX;
             this.y += this.velocityY;
+            boolean collisionCheck = false;
             for (Block wall : walls) {
                 if (collision(this, wall)) {
-                    char falseDirection = this.direction;
+                    nextDirection = direction;
                     this.x -= this.velocityX;
                     this.y -= this.velocityY;
                     this.direction = prevDirection;
                     updateVelocity();
-            
+                    collisionCheck = true;
                 }
+            }
+
+            if(!collisionCheck){
+                nextDirection = direction;
             }
 
         }
@@ -65,7 +72,20 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 this.velocityY = 0;
             }
         }
-
+        public void pacmanImage(char directoin){
+            if (direction == 'U') {
+                pacman.image = pacmanUpImage;
+            }
+            else if (direction == 'D') {
+                pacman.image = pacmanDownImage;
+            }
+            else if (direction == 'L') {
+                pacman.image = pacmanLeftImage;
+            }
+            else if (direction == 'R') {
+                pacman.image = pacmanRightImage;
+            }
+        }
         void reset() {
             this.x = this.startX;
             this.y = this.startY;
@@ -237,6 +257,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
 
+        if(pacman.x == 0){
+            pacman.x = tileSize * columnCount;
+        }
+        else if(pacman.x == tileSize * columnCount){
+            pacman.x = 0;
+        }
+
         //check wall collisions
         for (Block wall : walls) {
             if (collision(pacman, wall)) {
@@ -391,22 +418,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        if(pacman.nextDirection != pacman.direction){
+            pacman.updateDirection(pacman.nextDirection);
+            pacman.pacmanImage(pacman.nextDirection);
+        }
         move();
         repaint();
         if (gameOver) {
             gameLoop.stop();
-        }
-    }
-
-    @Override
-    public void keyTyped(KeyEvent e) {}
-
-    @Override
-    public void keyPressed(KeyEvent e) {}
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        if (gameOver) {
             loadMap();
             resetPositions();
             lives = 3;
@@ -414,6 +433,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             gameOver = false;
             gameLoop.start();
         }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {}
+
+    @Override
+    public void keyPressed(KeyEvent e) {
         // System.out.println("KeyEvent: " + e.getKeyCode());
         if (e.getKeyCode() == KeyEvent.VK_UP) {
             pacman.updateDirection('U');
@@ -428,17 +454,26 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             pacman.updateDirection('R');
         }
 
-        if (pacman.direction == 'U') {
-            pacman.image = pacmanUpImage;
+        pacman.pacmanImage(pacman.direction);
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        
+        // System.out.println("KeyEvent: " + e.getKeyCode());
+        if (e.getKeyCode() == KeyEvent.VK_UP) {
+            pacman.updateDirection('U');
         }
-        else if (pacman.direction == 'D') {
-            pacman.image = pacmanDownImage;
+        else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            pacman.updateDirection('D');
         }
-        else if (pacman.direction == 'L') {
-            pacman.image = pacmanLeftImage;
+        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            pacman.updateDirection('L');
         }
-        else if (pacman.direction == 'R') {
-            pacman.image = pacmanRightImage;
+        else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            pacman.updateDirection('R');
         }
+
+        pacman.pacmanImage(pacman.direction);
     }
 }
