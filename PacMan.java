@@ -141,10 +141,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     Block pacman;
 
     Timer gameLoop;
-    char[] directions = {'U', 'U', 'U', 'U', 'L', 'L', 'L', 'D', 'L', 'R'}; //up down left right
-    char[] directions1 = {'U', 'U', 'U', 'U', 'R', 'R', 'R', 'D', 'L', 'R'};
-    char[] directions2 = {'D', 'D', 'D', 'U', 'L', 'L', 'L', 'D', 'L', 'R'};
-    char[] directions3 = {'D', 'D', 'D', 'U', 'R', 'R', 'R', 'D', 'L', 'R'};
+    boolean running = true;
+    char[] directions = {'U', 'U', 'U', 'D', 'L', 'L', 'L', 'R', 'L', 'U'}; 
+    char[] directions1 = {'U', 'U', 'U', 'U', 'R', 'R', 'L', 'D', 'R', 'R'};
+    char[] directions2 = {'D', 'D', 'D', 'D', 'L', 'L', 'R', 'U', 'L', 'L'};
+    char[] directions3 = {'D', 'D', 'D', 'U', 'L', 'R', 'R', 'D', 'R', 'R'};
     Random random = new Random();
     int score = 0;
     int lives = 3;
@@ -253,6 +254,42 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    public boolean canMove(Block block, Block wall, char direction){
+        switch(direction){
+            case 'U': 
+                if(block.x == wall.x && block.y > wall.y){
+                    return true;
+                }
+            case 'D':
+                if(block.x == wall.x && block.y < wall.y){
+                    return true;
+                }
+            case 'L': 
+                if(block.x > wall.x && block.y == wall.y){
+                    return true;
+                }
+            case 'R':
+                if(block.x < wall.x && block.y == wall.y){
+                    return true;
+                }        
+        }
+        return false;
+    }
+
+    public char oppositeDirection(char direction){
+        switch(direction){
+            case 'U':
+                return 'D';
+            case 'D':
+                return 'U';
+            case 'R':
+                return 'L';
+            case 'L':
+                return 'R';
+        }
+        return 'X';
+    }
+
     public void move() {
         pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
@@ -293,63 +330,49 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 if (collision(ghost, wall) || ghost.x <= 0 || ghost.x + ghost.width >= boardWidth) {
                     ghost.x -= ghost.velocityX;
                     ghost.y -= ghost.velocityY;
-                    /* char[] directions = {'U', 'U', 'U', 'U', 'L', 'L', 'L', 'D', 'L', 'R'}; U L
-                    char[] directions1 = {'U', 'U', 'U', 'U', 'R', 'R', 'R', 'D', 'L', 'R'}; U R
-                    char[] directions2 = {'D', 'D', 'D', 'U', 'L', 'L', 'L', 'D', 'L', 'R'}; D L
-                    char[] directions3 = {'D', 'D', 'D', 'U', 'R', 'R', 'R', 'D', 'L', 'R'}; D R     */
-                    if(pacman.x > ghost.x && pacman.y > ghost.y){
-                        char newDirection = directions2[random.nextInt(10)];
-                        ghost.updateDirection(newDirection);
-                    }
-                    else if(pacman.x > ghost.x && pacman.y < ghost.y){
-                        char newDirection = directions[random.nextInt(10)];
-                        ghost.updateDirection(newDirection);
-                    }
-                    else if(pacman.x < ghost.x && pacman.y > ghost.y){
+                    if(pacman.x >= ghost.x && pacman.y >= ghost.y){
                         char newDirection = directions3[random.nextInt(10)];
                         ghost.updateDirection(newDirection);
                     }
-                    else if(pacman.x < ghost.x && pacman.y < ghost.y){
+                    else if(pacman.x >= ghost.x && pacman.y <= ghost.y){
+                        char newDirection = directions[random.nextInt(10)];
+                        ghost.updateDirection(newDirection);
+                    }
+                    else if(pacman.x <= ghost.x && pacman.y >= ghost.y){
+                        char newDirection = directions2[random.nextInt(10)];
+                        ghost.updateDirection(newDirection);
+                    }
+                    else if(pacman.x <= ghost.x && pacman.y <= ghost.y){
                         char newDirection = directions1[random.nextInt(10)];
                         ghost.updateDirection(newDirection);
                     }
-                    else if(pacman.x == ghost.x && pacman.y < ghost.y){
-                        if(pacman.x <= 10){
-                            char newDirection = directions2[random.nextInt(10)];
-                            ghost.updateDirection(newDirection);
-                        }
-                        else if(pacman.x >= 10){
-                            char newDirection = directions3[random.nextInt(10)];
-                            ghost.updateDirection(newDirection);
-                        }
-                    }
-                    else if(pacman.x < ghost.x && pacman.y == ghost.y){
-                        if(pacman.y <= 10){
-                            char newDirection = directions2[random.nextInt(10)];
-                            ghost.updateDirection(newDirection);
-                        }
-                        else if(pacman.y >= 10){
-                            char newDirection = directions[random.nextInt(10)];
+                }
+                else if(random.nextInt(20) == 0 &&
+                (canMove(ghost, wall, 'R') ||
+                canMove(ghost, wall, 'L') ||
+                canMove(ghost, wall, 'U') ||
+                canMove(ghost, wall, 'D'))){
+                    if(pacman.x >= ghost.x && pacman.y >= ghost.y){
+                        char newDirection = directions3[random.nextInt(10)];
+                        if(canMove(ghost, wall, newDirection) && ghost.direction != oppositeDirection(newDirection)){
                             ghost.updateDirection(newDirection);
                         }
                     }
-                    else if(pacman.x > ghost.x && pacman.y == ghost.y){
-                        if(pacman.y <= 10){
-                            char newDirection = directions3[random.nextInt(10)];
-                            ghost.updateDirection(newDirection);
-                        }
-                        else if(pacman.y >= 10){
-                            char newDirection = directions1[random.nextInt(10)];
+                    else if(pacman.x >= ghost.x && pacman.y <= ghost.y ){
+                        char newDirection = directions[random.nextInt(10)];
+                        if(canMove(ghost, wall, newDirection) && ghost.direction != oppositeDirection(newDirection)){
                             ghost.updateDirection(newDirection);
                         }
                     }
-                    else if(pacman.x == ghost.x && pacman.y > ghost.y){
-                        if(pacman.x <= 10){
-                            char newDirection = directions1[random.nextInt(10)];
+                    else if(pacman.x <= ghost.x && pacman.y >= ghost.y){
+                        char newDirection = directions2[random.nextInt(10)];
+                        if(canMove(ghost, wall, newDirection) && ghost.direction != oppositeDirection(newDirection)){
                             ghost.updateDirection(newDirection);
                         }
-                        else if(pacman.x >= 10){
-                            char newDirection = directions[random.nextInt(10)];
+                    }
+                    else if(pacman.x <= ghost.x && pacman.y <= ghost.y){
+                        char newDirection = directions1[random.nextInt(10)];
+                        if(canMove(ghost, wall, newDirection) && ghost.direction != oppositeDirection(newDirection)){
                             ghost.updateDirection(newDirection);
                         }
                     }
@@ -452,6 +475,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
             pacman.updateDirection('R');
+        }
+        else if(e.getKeyCode() == KeyEvent.VK_P){
+            if(running){
+                gameLoop.stop();
+                running = false;
+            }
+            else{
+                gameLoop.start();
+                running = true;
+            }
         }
 
         pacman.pacmanImage(pacman.direction);
