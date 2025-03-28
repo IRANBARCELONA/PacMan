@@ -150,27 +150,27 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     //X = wall, O = skip, P = pac man, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
     private String[] tileMap = {
-        "XXXXXXXXXXXXXXXXXXX",
-        "X  O    XX  X  O  X",
-        "X XXX    X     X  X",
-        "X o XXX  X XX XXX X",
-        "X XXX         X X X",
-        "XX    X     XXXpX X",
-        "XXXXX   XXX       X",
-        "X     X     X XXXXX",
-        "X XXXXggg ggg     X",
-        "N X   gNg gNg  XX N",
-        "X X X gg Pggg   X X",
-        "X     g g g   X   X",
-        "X  X  gbg g XXX   X",
-        "X  X              X",
-        "X X X  XXX   XXX  X",
-        "X              X  X",
-        "X  XXX  X XX X X XX",
-        "X       X r  X    X",
-        "XXX XXX XXXX XXX  X",
-        "X               C X",
-        "XXXXXXXXXXXXXXXXXXX"
+            "XXXXXXXXXXXXXXXXXXX",
+            "X  O    XX  X  O  X",
+            "X XXX    X     X  X",
+            "X o XXX  X XX XXX X",
+            "X XXX         X X X",
+            "XX    X     XXXpX X",
+            "XXXXX   XXX       X",
+            "X     X     X XXXXX",
+            "X XXXXggg ggg     X",
+            "N X   gNg gNg  XX N",
+            "X X X gg Pggg   X X",
+            "X     g g g   X   X",
+            "X  X  gbg g XXX   X",
+            "X  X              X",
+            "X X X  XXX   XXX  X",
+            "X              X  X",
+            "X  XXX  X XX X X XX",
+            "X       X r  X    X",
+            "XXX XXX XXXX XXX  X",
+            "X               C X",
+            "XXXXXXXXXXXXXXXXXXX"
     };
 
     HashSet<Block> walls;
@@ -326,11 +326,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 else if(ghost.name == 'p'){
                     ghost.image = pinkGhostImage;
                 }
+                ghost.setVulnerable = false;
             }
         }
         for(Block ghost : ghosts) {
             if(counter == 300) {
-                ghost.setVulnerable = false;
                 counter = 0;
             }
         }
@@ -421,6 +421,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             pacman.x = 0;
         }
 
+
+
         //check wall collisions
         for (Block wall : walls) {
             if (collision(pacman, wall)) {
@@ -432,6 +434,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         //check ghost collisions
         for (Block ghost : ghosts) {
+
+
             if (collision(ghost, pacman)) {
                 if(ghost.setVulnerable == false) {
                     lives -= 1;
@@ -489,7 +493,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                         ghost.updateDirection(newDirection);
                     }
                 }
-                else if(random.nextInt(20) == 0 &&
+                else if(random.nextInt(10) == 0 &&
                 (canMove(ghost, wall, 'R') ||
                 canMove(ghost, wall, 'L') ||
                 canMove(ghost, wall, 'U') ||

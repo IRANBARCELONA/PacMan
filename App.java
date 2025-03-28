@@ -5,7 +5,7 @@ import java.awt.*;
 
 public class App {
     private static final int ROW_COUNT = 22;
-    private static final int COLUMN_COUNT = 19;
+    private static final int COLUMN_COUNT = 21;
     private static final int TILE_SIZE = 32;
     private static final int BOARD_WIDTH = COLUMN_COUNT * TILE_SIZE;
     private static final int BOARD_HEIGHT = ROW_COUNT * TILE_SIZE;
