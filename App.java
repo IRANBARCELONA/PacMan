@@ -13,7 +13,7 @@ public class App {
 
     public static void main(String[] args) {
         // عکس بک گراند
-        BG = new ImageIcon("Media/Images/bg.jpg").getImage();
+        BG = new ImageIcon("Media/Images/background.png").getImage();
 
         JFrame frame = new JFrame("Pac Man");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -45,7 +45,7 @@ public class App {
         JButton exitButton = createMenuButton("Exit");
 
         playButton.addActionListener(e -> startGame(frame));
-        optionsButton.addActionListener(e -> showOptions(frame));
+        optionsButton.addActionListener(e -> showOptions());
         exitButton.addActionListener(e -> System.exit(0));
 
         menuPanel.add(Box.createVerticalGlue());
@@ -87,7 +87,7 @@ public class App {
         pacmanGame.requestFocus();
     }
 
-    private static void showOptions(JFrame frame) {
+    private static void showOptions() {
         
     }
 }
