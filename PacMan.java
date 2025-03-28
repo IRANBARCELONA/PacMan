@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
 import javax.swing.*;
+import java.util.List;
+import java.util.ArrayList;
+
 
 public class PacMan extends JPanel implements ActionListener, KeyListener {
 
@@ -183,7 +186,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     Timer gameLoop;
     boolean running = true;
-    char[] directions = {'U', 'U', 'U', 'D', 'L', 'L', 'L', 'R', 'L', 'U'}; 
+    char[] directions = {'U', 'U', 'U', 'D', 'L', 'L', 'L', 'R', 'L', 'U'};
     char[] directions1 = {'U', 'U', 'U', 'U', 'R', 'R', 'L', 'D', 'R', 'R'};
     char[] directions2 = {'D', 'D', 'D', 'D', 'L', 'L', 'R', 'U', 'L', 'L'};
     char[] directions3 = {'D', 'D', 'D', 'U', 'L', 'R', 'R', 'D', 'R', 'R'};
@@ -239,7 +242,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             ghost.updateDirection(newDirection);
         }
         //how long it takes to start timer, milliseconds gone between frames
-        gameLoop = new Timer(20, this); //20fps (1000/50)
+        gameLoop = new Timer(25, this);
         gameLoop.start();
 
     }
@@ -376,7 +379,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public boolean canMove(Block block, Block wall, char direction){
         switch(direction){
-            case 'U': 
+            case 'U':
                 if(block.x == wall.x && block.y > wall.y){
                     return true;
                 }
@@ -384,14 +387,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 if(block.x == wall.x && block.y < wall.y){
                     return true;
                 }
-            case 'L': 
+            case 'L':
                 if(block.x > wall.x && block.y == wall.y){
                     return true;
                 }
             case 'R':
                 if(block.x < wall.x && block.y == wall.y){
                     return true;
-                }        
+                }
         }
         return false;
     }
@@ -493,36 +496,22 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                         ghost.updateDirection(newDirection);
                     }
                 }
-                else if(random.nextInt(10) == 0 &&
-                (canMove(ghost, wall, 'R') ||
-                canMove(ghost, wall, 'L') ||
-                canMove(ghost, wall, 'U') ||
-                canMove(ghost, wall, 'D'))){
-                    if(pacman.x >= ghost.x && pacman.y >= ghost.y){
-                        char newDirection = directions3[random.nextInt(10)];
-                        if(canMove(ghost, wall, newDirection) && ghost.direction != oppositeDirection(newDirection)){
-                            ghost.updateDirection(newDirection);
-                        }
-                    }
-                    else if(pacman.x >= ghost.x && pacman.y <= ghost.y ){
-                        char newDirection = directions[random.nextInt(10)];
-                        if(canMove(ghost, wall, newDirection) && ghost.direction != oppositeDirection(newDirection)){
-                            ghost.updateDirection(newDirection);
-                        }
-                    }
-                    else if(pacman.x <= ghost.x && pacman.y >= ghost.y){
-                        char newDirection = directions2[random.nextInt(10)];
-                        if(canMove(ghost, wall, newDirection) && ghost.direction != oppositeDirection(newDirection)){
-                            ghost.updateDirection(newDirection);
-                        }
-                    }
-                    else if(pacman.x <= ghost.x && pacman.y <= ghost.y){
-                        char newDirection = directions1[random.nextInt(10)];
-                        if(canMove(ghost, wall, newDirection) && ghost.direction != oppositeDirection(newDirection)){
+                else if (random.nextInt(30) == 0) {  // مقدار را افزایش دادم تا تغییر جهت کمتر شود
+                    List<Character> possibleDirections = new ArrayList<>();
+
+                    if (canMove(ghost, wall, 'R')) possibleDirections.add('R');
+                    if (canMove(ghost, wall, 'L')) possibleDirections.add('L');
+                    if (canMove(ghost, wall, 'U')) possibleDirections.add('U');
+                    if (canMove(ghost, wall, 'D')) possibleDirections.add('D');
+
+                    if (!possibleDirections.isEmpty()) {
+                        char newDirection = possibleDirections.get(random.nextInt(possibleDirections.size()));
+                        if (newDirection != oppositeDirection(ghost.direction)) {
                             ghost.updateDirection(newDirection);
                         }
                     }
                 }
+
             }
         }
 
@@ -572,7 +561,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 a.y + a.height > b.y;
     }
 
-    
+
     public void resetPositions() {
         pacman.reset();
         pacman.velocityX = 0;
