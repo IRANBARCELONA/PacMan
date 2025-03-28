@@ -25,6 +25,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         int velocityX = 0;
         int velocityY = 0;
 
+        int orangesLeft = 4;
+        int cherrysLeft = 4;
+
         boolean setVulnerable = false;
 
         Block(Image image, int x, int y, int width, int height) {
@@ -118,7 +121,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int rowCount = 21;
     private int columnCount = 19;
     private int tileSize = 32;
-    private int boardWidth = columnCount * tileSize;
+    private int boardWidth = columnCount * tileSize ;
     private int boardHeight = rowCount * tileSize;
     private int counter = 0;
 
@@ -154,7 +157,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     //Ghosts: b = blue, o = orange, p = pink, r = red
     private String[] tileMap = {
             "XXXXXXXXXXXXXXXXXXX",
-            "X  O    XX  X  O  X",
+            "X       XX  X     X",
             "X XXX    X     X  X",
             "X o XXX  X XX XXX X",
             "X XXX         X X X",
@@ -172,7 +175,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "X  XXX  X XX X X XX",
             "X       X r  X    X",
             "XXX XXX XXXX XXX  X",
-            "X               C X",
+            "X                 X",
             "XXXXXXXXXXXXXXXXXXX"
     };
 
@@ -338,6 +341,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
 
+
+
         super.paintComponent(g);
         draw(g);
     }
@@ -423,6 +428,100 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         else if(pacman.x == tileSize * columnCount){
             pacman.x = 0;
         }
+
+
+        if(foods.size() == 190 && pacman.orangesLeft == 4){
+            pacman.orangesLeft = 3;
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block orange = new Block(orangeImage, x * tileSize, y * tileSize, tileSize, tileSize);
+            oranges.add(orange);
+        }
+        else if(foods.size() == 130 && pacman.orangesLeft == 3){
+            pacman.orangesLeft = 2;
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block orange = new Block(orangeImage, x * tileSize, y * tileSize, tileSize, tileSize);
+            oranges.add(orange);
+        }
+        else if(foods.size() == 90 && pacman.orangesLeft == 2){
+            pacman.orangesLeft = 1;
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block orange = new Block(orangeImage, x * tileSize, y * tileSize, tileSize, tileSize);
+            oranges.add(orange);
+        }
+        else if(foods.size() == 50 && pacman.orangesLeft == 1){
+            pacman.orangesLeft = 0;
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block orange = new Block(orangeImage, x * tileSize, y * tileSize, tileSize, tileSize);
+            oranges.add(orange);
+        }
+
+
+        if(foods.size() == 180 && pacman.cherrysLeft == 4){
+            pacman.cherrysLeft = 3;
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block cherry = new Block(cherryImage, x * tileSize, y * tileSize, tileSize, tileSize);
+            cherrys.add(cherry);
+        }
+        else if(foods.size() == 120 && pacman.cherrysLeft == 3){
+            pacman.cherrysLeft = 2;
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block cherry = new Block(cherryImage, x * tileSize, y * tileSize, tileSize, tileSize);
+            cherrys.add(cherry);
+        }
+        else if(foods.size() == 100 && pacman.cherrysLeft == 2){
+            pacman.cherrysLeft = 1;
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block cherry = new Block(cherryImage, x * tileSize, y * tileSize, tileSize, tileSize);
+            cherrys.add(cherry);
+        }
+        else if(foods.size() == 30 && pacman.cherrysLeft == 1){
+            pacman.cherrysLeft = 0;
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block cherry = new Block(cherryImage, x * tileSize, y * tileSize, tileSize, tileSize);
+            cherrys.add(cherry);
+        }
+
+
 
 
 
@@ -564,6 +663,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public void resetPositions() {
         pacman.reset();
+        pacman.orangesLeft = 4;
+        pacman.cherrysLeft = 4;
         pacman.velocityX = 0;
         pacman.velocityY = 0;
         for (Block ghost : ghosts) {
