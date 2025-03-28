@@ -29,7 +29,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             this.startX = x;
             this.startY = y;
         }
-
+        
         void updateDirection(char direction) {
             char prevDirection = this.direction;
             this.direction = direction;
@@ -99,6 +99,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int boardHeight = rowCount * tileSize;
 
     private Image wallImage;
+    private Image wallRPImage;
     private Image blueGhostImage;
     private Image orangeGhostImage;
     private Image pinkGhostImage;
@@ -109,35 +110,47 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image pacmanLeftImage;
     private Image pacmanRightImage;
 
+    private Image snakeheadLImage;
+    private Image snakeheadRImage;
+    private Image snakeheadUImage;
+    private Image snakeheadDImage;
+    private Image snakebodyHImage;
+    private Image snakebodyVImage;
+    private Image snakeendRImage;
+    private Image snakeendUImage;
+    private Image snakeendLImage;
+    private Image snakeendDImage;
+
     //X = wall, O = skip, P = pac man, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
     private String[] tileMap = {
         "XXXXXXXXXXXXXXXXXXX",
-        "X        X        X",
-        "X XX XXX X XXX XX X",
+        "X       XX  X     X",
+        "X XXX    X     X  X",
+        "X o XXX  X XX XXX X",
+        "X XXX         X X X",
+        "XX    X     XXXpX X",
+        "XXXXX   XXX       X",
+        "X     X     X XXXXX",
+        "X XXXXggg ggg     X",
+        "O X   gOg gOg  XX O",
+        "X X X gg Pggg   X X",
+        "X     g g g   X   X",
+        "X  X  gbg g XXX   X",
+        "X  X              X",
+        "X X X  XXX   XXX  X",
+        "X              X  X",
+        "X  XXX  X XX X X XX",
+        "X       X r  X    X",
+        "XXX XXX XXXX XXX  X",
         "X                 X",
-        "X XX X XXXXX X XX X",
-        "X    X       X    X",
-        "XXXX XXXX XXXX XXXX",
-        "OOOX X       X XOOO",
-        "XXXX X XXrXX X XXXX",
-        "O       bpo       O",
-        "XXXX X XXXXX X XXXX",
-        "OOOX X       X XOOO",
-        "XXXX X XXXXX X XXXX",
-        "X        X        X",
-        "X XX XXX X XXX XX X",
-        "X  X     P     X  X",
-        "XX X X XXXXX X X XX",
-        "X    X   X   X    X",
-        "X XXXXXX X XXXXXX X",
-        "X                 X",
-        "XXXXXXXXXXXXXXXXXXX" 
+        "XXXXXXXXXXXXXXXXXXX"
     };
 
     HashSet<Block> walls;
     HashSet<Block> foods;
     HashSet<Block> ghosts;
+    HashSet<Block> snake;
     Block pacman;
 
     Timer gameLoop;
@@ -149,25 +162,42 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     Random random = new Random();
     int score = 0;
     int lives = 3;
+    int phase = 1;
     boolean gameOver = false;
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
-        setBackground(Color.BLACK);
+        if(phase == 1)
+            setBackground(Color.BLACK);
+        else if(phase == 2)
+            setBackground(new Color(30,0,0,200));
         addKeyListener(this);
         setFocusable(true);
 
         //load images
-        wallImage = new ImageIcon("Media/Images/wall.png").getImage();
-        blueGhostImage = new ImageIcon("Media/Images/blueGhost.png").getImage();
-        orangeGhostImage = new ImageIcon("Media/Images/orangeGhost.png").getImage();
-        pinkGhostImage = new ImageIcon("Media/Images/pinkGhost.png").getImage();
-        redGhostImage = new ImageIcon("Media/Images/redGhost.png").getImage();
+        wallImage = new ImageIcon(getClass().getResource("./wall.png")).getImage();
+        wallRPImage = new ImageIcon(getClass().getResource("./wallrp.png")).getImage();
+        blueGhostImage = new ImageIcon(getClass().getResource("./blueGhost.png")).getImage();
+        orangeGhostImage = new ImageIcon(getClass().getResource("./orangeGhost.png")).getImage();
+        pinkGhostImage = new ImageIcon(getClass().getResource("./pinkGhost.png")).getImage();
+        redGhostImage = new ImageIcon(getClass().getResource("./redGhost.png")).getImage();
+ 
+        pacmanUpImage = new ImageIcon(getClass().getResource("./pacmanUp.png")).getImage();
+        pacmanDownImage = new ImageIcon(getClass().getResource("./pacmanDown.png")).getImage();
+        pacmanLeftImage = new ImageIcon(getClass().getResource("./pacmanLeft.png")).getImage();
+        pacmanRightImage = new ImageIcon(getClass().getResource("./pacmanRight.png")).getImage();
 
-        pacmanUpImage = new ImageIcon("Media/Images/pacmanUp.png").getImage();
-        pacmanDownImage = new ImageIcon("Media/Images/pacmanDown.png").getImage();
-        pacmanLeftImage = new ImageIcon("Media/Images/pacmanLeft.png").getImage();
-        pacmanRightImage = new ImageIcon("Media/Images/pacmanRight.png").getImage();
+        snakeheadLImage = new ImageIcon(getClass().getResource("./snakeheadL.png")).getImage();
+        snakeheadRImage = new ImageIcon(getClass().getResource("./snakeheadR.png")).getImage();
+        snakeheadUImage = new ImageIcon(getClass().getResource("./snakeheadU.png")).getImage();
+        snakeheadDImage = new ImageIcon(getClass().getResource("./snakeheadD.png")).getImage();
+        snakebodyHImage = new ImageIcon(getClass().getResource("./snakebodyH.png")).getImage();
+        snakebodyVImage = new ImageIcon(getClass().getResource("./snakebodyV.png")).getImage();;
+        snakeendRImage = new ImageIcon(getClass().getResource("./snakeendR.png")).getImage();;
+        snakeendUImage = new ImageIcon(getClass().getResource("./snakeendU.png")).getImage();;
+        snakeendLImage = new ImageIcon(getClass().getResource("./snakeendL.png")).getImage();;
+        snakeendDImage = new ImageIcon(getClass().getResource("./snakeendD.png")).getImage();;
+
 
         loadMap();
         for (Block ghost : ghosts) {
@@ -195,6 +225,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
                 if (tileMapChar == 'X') { //block wall
                     Block wall = new Block(wallImage, x, y, tileSize, tileSize);
+                    walls.add(wall);
+                }
+                else if (tileMapChar == 'g') { //wallRP
+                    Block wall = new Block(wallRPImage, x, y, tileSize, tileSize);
                     walls.add(wall);
                 }
                 else if (tileMapChar == 'b') { //blue ghost
@@ -240,17 +274,18 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             g.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height, null);
         }
 
-        g.setColor(Color.GREEN);
+        g.setColor(Color.YELLOW);
         for (Block food : foods) {
             g.fillRect(food.x, food.y, food.width, food.height);
         }
         //score
-        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Playbill", Font.PLAIN, 30));
         if (gameOver) {
             g.drawString("Game Over: " + String.valueOf(score), tileSize/2, tileSize/2);
         }
         else {
-            g.drawString("x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/2, tileSize/2);
+            g.drawString("LIVES: x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/1, tileSize/1);
         }
     }
 
@@ -403,31 +438,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 a.y + a.height > b.y;
     }
 
-    public boolean collision2(Block a, Block b, char c) { // a = pacman  b = wall
-        if(c == 'U'){
-            return  a.y + 1 < b.y + b.height &&
-                    a.y + a.height > b.y;
-        }
-        else if(c == 'D'){
-            return  a.x < b.x + b.width &&
-                    a.x + a.width > b.x &&
-                    a.y < b.y + b.height &&
-                    a.y + a.height > b.y;
-        }
-        else if(c == 'L'){
-            return  a.x < b.x + b.width &&
-                    a.x + a.width > b.x &&
-                    a.y < b.y + b.height &&
-                    a.y + a.height > b.y;
-        }
-        else {     //R
-            return  a.x < b.x + b.width &&
-                    a.x + a.width > b.x &&
-                    a.y < b.y + b.height &&
-                    a.y + a.height > b.y;
-        }
-    }
-
+    
     public void resetPositions() {
         pacman.reset();
         pacman.velocityX = 0;
