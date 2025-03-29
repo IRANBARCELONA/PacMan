@@ -1,11 +1,18 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
 import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.advanced.AdvancedPlayer;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 
 
 public class PacMan extends JPanel implements ActionListener, KeyListener {
@@ -27,6 +34,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         int orangesLeft = 4;
         int cherrysLeft = 4;
+
+        boolean foodEatingSound = true;
+        boolean mainSound = true;
+        int mainMusicCounter = 0;
+
+        AdvancedPlayer player;
+        Thread musicThread;
+        boolean isPlaying = false;
 
         boolean setVulnerable = false;
 
@@ -51,6 +66,53 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             this.startY = y;
             this.setVulnerable = setVulnerable;
             this.name = name;
+        }
+
+        public void play(String filePath) {
+            new Thread(() -> {
+                try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
+                    AdvancedPlayer player = new AdvancedPlayer(fileInputStream);
+                    player.play();
+                } catch (JavaLayerException | IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+
+        public void playRepeatMusic(String filePath) {
+            if (isPlaying) return;
+
+            isPlaying = true;
+            musicThread = new Thread(() -> {
+                while (isPlaying) {
+                    try {
+                        FileInputStream fileInputStream = new FileInputStream(filePath);
+                        player = new AdvancedPlayer(fileInputStream);
+                        player.play();
+
+                    } catch (JavaLayerException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            musicThread.start();
+        }
+
+        private void changeMusic(String filePath) {
+            try {
+                pacman.stopMusic();
+                Thread.sleep(1);
+                pacman.playRepeatMusic(filePath);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void stopMusic() {
+            if (player != null) {
+                player.close();
+                isPlaying = false;
+            }
         }
 
         void updateDirection(char direction) {
@@ -195,7 +257,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     char[] directions3 = {'D', 'D', 'D', 'U', 'L', 'R', 'R', 'D', 'R', 'R'};
     Random random = new Random();
     int score = 0;
-    int lives = 3;
+    int lives = 10;
     int phase = 1;
     boolean gameOver = false;
 
@@ -240,6 +302,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
         loadMap();
+
         for (Block ghost : ghosts) {
             char newDirection = directions[random.nextInt(4)];
             ghost.updateDirection(newDirection);
@@ -318,8 +381,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        for(Block ghost : ghosts) {
-            if(counter == 300){
+        if(counter == 240) {
+            for(Block ghost : ghosts) {
                 if(ghost.name == 'o'){
                     ghost.image = orangeGhostImage;
                 }
@@ -333,13 +396,40 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     ghost.image = pinkGhostImage;
                 }
                 ghost.setVulnerable = false;
+
             }
+            pacman.changeMusic("Media/Musics/normalMove.mp3");
+            pacman.mainSound = true;
+            counter = 0;
         }
         for(Block ghost : ghosts) {
             if(counter == 300) {
                 counter = 0;
             }
         }
+
+        if(pacman.mainSound) {
+            if (foods.size() > 30 && pacman.mainMusicCounter == 0) {
+                pacman.changeMusic("Media/Musics/normalMove.mp3");
+                pacman.mainMusicCounter = 1;
+            }
+            else if (foods.size() <= 30 && foods.size() > 20 && pacman.mainMusicCounter == 1) {
+                pacman.changeMusic("Media/Musics/spurtMove1.mp3");
+                pacman.mainMusicCounter = 2;
+            }
+            else if (foods.size() <= 20 && foods.size() > 12 && pacman.mainMusicCounter == 2) {
+                pacman.changeMusic("Media/Musics/spurtMove2.mp3");
+                pacman.mainMusicCounter = 3;
+            }
+            else if (foods.size() <= 12 && foods.size() > 5 && pacman.mainMusicCounter == 3) {
+                pacman.changeMusic("Media/Musics/spurtMove3.mp3");
+                pacman.mainMusicCounter = 4;
+            }
+            else if (foods.size() <= 5 && pacman.mainMusicCounter == 4) {
+                pacman.changeMusic("Media/Musics/spurtMove4.mp3");
+            }
+        }
+
 
 
 
@@ -549,6 +639,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
                 else{
                     if (collision(pacman, ghost)) {
+                        pacman.play("Media/Musics/ghostEaten.mp3");
                         score += 400;
                         ghost.x = ghost.startX;
                         ghost.y = ghost.startY;
@@ -595,7 +686,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                         ghost.updateDirection(newDirection);
                     }
                 }
-                else if (random.nextInt(30) == 0) {  // مقدار را افزایش دادم تا تغییر جهت کمتر شود
+                else if (random.nextInt(30) == 0) {
                     List<Character> possibleDirections = new ArrayList<>();
 
                     if (canMove(ghost, wall, 'R')) possibleDirections.add('R');
@@ -618,6 +709,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         Block cherryEaten = null;
         for (Block cherry : cherrys) {
             if (collision(pacman, cherry)) {
+                pacman.play("Media/Musics/fruitEaten.mp3");
                 cherryEaten = cherry;
                 score += 100;
             }
@@ -628,6 +720,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         Block orangeEaten = null;
         for (Block orange : oranges) {
             if (collision(pacman, orange)) {
+                pacman.mainSound = false;
+                pacman.changeMusic("Media/Musics/scaryGhostTime.mp3");
                 orangeEaten = orange;
                 for(Block ghost : ghosts){
                     ghost.setVulnerable = true;
@@ -641,6 +735,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         Block foodEaten = null;
         for (Block food : foods) {
             if (collision(pacman, food)) {
+                if(pacman.foodEatingSound) {
+                    pacman.play("Media/Musics/foodEating1.mp3");
+                    pacman.foodEatingSound = false;
+                }
+                else {
+                    pacman.play("Media/Musics/foodEating2.mp3");
+                    pacman.foodEatingSound = true;
+                }
                 foodEaten = food;
                 score += 10;
             }
