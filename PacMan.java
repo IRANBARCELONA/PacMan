@@ -427,6 +427,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
             else if (foods.size() <= 5 && pacman.mainMusicCounter == 4) {
                 pacman.changeMusic("Media/Musics/spurtMove4.mp3");
+                pacman.mainMusicCounter = 5;
             }
         }
 
