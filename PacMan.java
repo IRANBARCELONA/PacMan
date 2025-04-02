@@ -271,33 +271,33 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         setFocusable(true);
 
         //load images
-        wallImage = new ImageIcon(getClass().getResource("/Media/Images/wall.png")).getImage();
-        wallRPImage = new ImageIcon(getClass().getResource("/Media/Images/wallrp.png")).getImage();
+        wallImage = new ImageIcon("./Media/Images/wall.png").getImage();
+        wallRPImage = new ImageIcon("./Media/Images/wallrp.png").getImage();
 
-        blueGhostImage = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Media/Images/blueGhost.png"))).getImage();
-        orangeGhostImage = new ImageIcon(getClass().getResource("/Media/Images/orangeGhost.png")).getImage();
-        pinkGhostImage = new ImageIcon(getClass().getResource("/Media/Images/pinkGhost.png")).getImage();
-        redGhostImage = new ImageIcon(getClass().getResource("/Media/Images/redGhost.png")).getImage();
-        valnerableGhostImage = new ImageIcon(getClass().getResource("/Media/Images/vulnerableGhost.png")).getImage();
+        blueGhostImage = new ImageIcon("./Media/Images/blueGhost.png").getImage();
+        orangeGhostImage = new ImageIcon("./Media/Images/orangeGhost.png").getImage();
+        pinkGhostImage = new ImageIcon("./Media/Images/pinkGhost.png").getImage();
+        redGhostImage = new ImageIcon("./Media/Images/redGhost.png").getImage();
+        valnerableGhostImage = new ImageIcon("./Media/Images/vulnerableGhost.png").getImage();
 
-        cherryImage = new ImageIcon(getClass().getResource("/Media/Images/cherry.png")).getImage();
-        orangeImage = new ImageIcon(getClass().getResource("/Media/Images/orange.png")).getImage();
+        cherryImage = new ImageIcon("./Media/Images/cherry.png").getImage();
+        orangeImage = new ImageIcon("./Media/Images/orange.png").getImage();
 
-        pacmanUpImage = new ImageIcon(getClass().getResource("/Media/Images/pacmanUp.png")).getImage();
-        pacmanDownImage = new ImageIcon(getClass().getResource("/Media/Images/pacmanDown.png")).getImage();
-        pacmanLeftImage = new ImageIcon(getClass().getResource("/Media/Images/pacmanLeft.png")).getImage();
-        pacmanRightImage = new ImageIcon(getClass().getResource("/Media/Images/pacmanRight.png")).getImage();
+        pacmanUpImage = new ImageIcon("./Media/Images/pacmanUp.png").getImage();
+        pacmanDownImage = new ImageIcon("./Media/Images/pacmanDown.png").getImage();
+        pacmanLeftImage = new ImageIcon("./Media/Images/pacmanLeft.png").getImage();
+        pacmanRightImage = new ImageIcon("./Media/Images/pacmanRight.png").getImage();
 
-        snakeheadLImage = new ImageIcon(getClass().getResource("/Media/Images/snakeheadL.png")).getImage();
-        snakeheadRImage = new ImageIcon(getClass().getResource("/Media/Images/snakeheadR.png")).getImage();
-        snakeheadUImage = new ImageIcon(getClass().getResource("/Media/Images/snakeheadU.png")).getImage();
-        snakeheadDImage = new ImageIcon(getClass().getResource("/Media/Images/snakeheadD.png")).getImage();
-        snakebodyHImage = new ImageIcon(getClass().getResource("/Media/Images/snakebodyH.png")).getImage();
-        snakebodyVImage = new ImageIcon(getClass().getResource("/Media/Images/snakebodyV.png")).getImage();
-        snakeendRImage = new ImageIcon(getClass().getResource("/Media/Images/snakeendR.png")).getImage();
-        snakeendUImage = new ImageIcon(getClass().getResource("/Media/Images/snakeendU.png")).getImage();
-        snakeendLImage = new ImageIcon(getClass().getResource("/Media/Images/snakeendL.png")).getImage();
-        snakeendDImage = new ImageIcon(getClass().getResource("/Media/Images/snakeendD.png")).getImage();
+        snakeheadLImage = new ImageIcon("./Media/Images/snakeheadL.png").getImage();
+        snakeheadRImage = new ImageIcon("./Media/Images/snakeheadR.png").getImage();
+        snakeheadUImage = new ImageIcon("./Media/Images/snakeheadU.png").getImage();
+        snakeheadDImage = new ImageIcon("./Media/Images/snakeheadD.png").getImage();
+        snakebodyHImage = new ImageIcon("./Media/Images/snakebodyH.png").getImage();
+        snakebodyVImage = new ImageIcon("./Media/Images/snakebodyV.png").getImage();
+        snakeendRImage = new ImageIcon("./Media/Images/snakeendR.png").getImage();
+        snakeendUImage = new ImageIcon("./Media/Images/snakeendU.png").getImage();
+        snakeendLImage = new ImageIcon("./Media/Images/snakeendL.png").getImage();
+        snakeendDImage = new ImageIcon("./Media/Images/snakeendD.png").getImage();
 
 
 
@@ -427,7 +427,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
             else if (foods.size() <= 5 && pacman.mainMusicCounter == 4) {
                 pacman.changeMusic("Media/Musics/spurtMove4.mp3");
-                pacman.mainMusicCounter = 5;
             }
         }
 
