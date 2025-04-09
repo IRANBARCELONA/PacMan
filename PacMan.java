@@ -265,7 +265,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     HashSet<Block> walls;
     HashSet<Block> foods;
-    HashSet<Block> ghosts;
+    ArrayList <Block> ghosts;
     HashSet<Block> scaredGhosts;
     HashSet<Block> cherrys;
     HashSet<Block> oranges;
@@ -341,7 +341,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     public void loadMap() {
         walls = new HashSet<Block>();
         foods = new HashSet<Block>();
-        ghosts = new HashSet<Block>();
+        ghosts = new ArrayList<Block>();
         cherrys = new HashSet<Block>();
         oranges = new HashSet<Block>();
         scaredGhosts = new HashSet<Block>();
@@ -792,20 +792,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         if (foods.isEmpty()) {
             if(phase == 1){
-                int i = 0;
-                for(Block ghost : ghosts){
-                    if(i < 2){
-                        Block orange = new Block(orangeImage, ghost.x, ghost.y, tileSize, tileSize);
-                        oranges.add(orange);
-                        i++;
-                    }
-                    ghosts.remove(ghost);
-                }
-
+                Block orange1 = new Block(orangeImage, ghosts.get(0).x, ghosts.get(0).y, tileSize, tileSize);
+                ghosts.remove(ghosts.get(0));
+                Block orange2 = new Block(orangeImage, ghosts.get(1).x, ghosts.get(1).y, tileSize, tileSize);
+                ghosts.remove(ghosts.get(1));
+                oranges.add(orange1);
+                oranges.add(orange2);
+                phase++;
             }
-            else if(phase == 1){
-                loadMap();
-                resetPositions();
+            else if(phase == 2){
+                loadMap2();
             }
         }
     }
