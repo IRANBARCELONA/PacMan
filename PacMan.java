@@ -226,7 +226,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "XXX X   XXX       X",
             "X     X     X XXXXX",
             "X XXXXggg ggg     X",
-            "N X   gNg gNg XXX N",
+            "N X   gNg gNg XXX M",
             "X X X gg Pggg   X X",
             "X     g g g   X   X",
             "X XX Xgbg g XXXX XX",
@@ -245,11 +245,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         "XXXXXXXXXXXXXXXXXXX",
         "XoXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
-        "XXXXXXXXXXXXXXXpXXX",
-        "XXXXXXXXXXXXXXXXXXX",
-        "XXXXXXXXXXXXXXXXXXX",
+        "XXXXXXXX  NNNNNpXXX",
+        "XXXXXXXXX XXXXXXXXX",
+        "XXXXXXXXX XXXXXXXXX",
         "XXXXXXggg gggXXXXXX",
-        "NXXXXXgNg gNgXXXXXN",
+        "SXXXXXgNgOgNgXXXXXM",
         "XXXXXXgg PgggXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXbXXXXXXXXX",
@@ -269,7 +269,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     HashSet<Block> scaredGhosts;
     HashSet<Block> cherrys;
     HashSet<Block> oranges;
-    HashSet<Block> snake;
+    ArrayList <Block> snake;
     Block pacman;
 
     Timer gameLoop;
@@ -283,8 +283,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int lives = 10;
     int phase = 1;
     boolean gameOver = false;
-    int ghostPositionx;
-    int ghostPositiony;
+    int pacmanPositionx;
+    int pacmanPositiony;
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -399,7 +399,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     public void loadMap2() {
         walls = new HashSet<Block>();
         foods = new HashSet<Block>();
-        snake = new HashSet<Block>();
         cherrys = new HashSet<Block>();
         oranges = new HashSet<Block>();
 
@@ -419,12 +418,15 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     Block wall = new Block(wallRPImage, x, y, tileSize, tileSize );
                     walls.add(wall);
                 }
-                else if (tileMapChar == 'P') { //pacman
-                    pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
-                }
                 else if (tileMapChar == ' ') { //food
                     Block food = new Block(null, x + 14, y + 14, 4, 4);
                     foods.add(food);
+                }
+                else if (tileMapChar == 'S') { //snakes
+                    Block snake1 = new Block(snakeheadLImage, x, y, tileSize , tileSize);
+                }
+                else if (tileMapChar == 'M') { //snakes
+                    Block snake2 = new Block(snakeheadRImage, x, y, tileSize , tileSize);
                 }
             }
         }
@@ -456,6 +458,17 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 ghost.setVulnerable = false;
 
             }
+
+            if(phase == 2) {
+                for(Block snake : snake)
+                if(snake.name == 'S'){
+                    snake.image = snakeheadLImage;
+                }
+                else if(snake.name == 'M'){
+                    snake.image = snakeheadRImage;
+                }
+            }
+
             pacman.changeMusic("Media/Musics/normalMove.mp3");
             pacman.mainSound = true;
             counter = 0;
@@ -497,7 +510,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public void draw(Graphics g) {
         g.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height, null);
-
+        
         for (Block ghost : ghosts) {
             g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
         }
@@ -678,7 +691,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
                 else{
                     for(Block ghosts : scaredGhosts){
-                        if (collision(pacman, ghosts)) {
+                        if (collision(ghosts, pacman)) {
                             pacman.play("Media/Musics/ghostEaten.mp3");
                             score += 400;
                             ghost.x = ghost.startX;
@@ -697,6 +710,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                                 ghost.image = pinkGhostImage;
                             }
                         }
+                        ghost.setVulnerable = false;
                     }
                 }
             }
@@ -791,17 +805,23 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         foods.remove(foodEaten);
 
         if (foods.isEmpty()) {
+            Block orange1 = new Block(orangeImage, ghosts.get(0).x, ghosts.get(0).y, tileSize, tileSize);
+            Block orange2 = new Block(orangeImage, ghosts.get(1).x, ghosts.get(1).y, tileSize, tileSize);
+            Block cherry1 = new Block(cherryImage, ghosts.get(2).x, ghosts.get(2).y, tileSize, tileSize);
+            Block cherry2 = new Block(cherryImage, ghosts.get(3).x, ghosts.get(3).y, tileSize, tileSize);
             if(phase == 1){
-                Block orange1 = new Block(orangeImage, ghosts.get(0).x, ghosts.get(0).y, tileSize, tileSize);
-                ghosts.remove(ghosts.get(0));
-                Block orange2 = new Block(orangeImage, ghosts.get(1).x, ghosts.get(1).y, tileSize, tileSize);
-                ghosts.remove(ghosts.get(1));
-                oranges.add(orange1);
-                oranges.add(orange2);
                 phase++;
             }
             else if(phase == 2){
                 loadMap2();
+                oranges.add(orange1);
+                oranges.add(orange2);
+                cherrys.add(cherry1);
+                cherrys.add(cherry2);
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
             }
         }
     }
