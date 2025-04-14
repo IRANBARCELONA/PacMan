@@ -401,6 +401,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         foods = new HashSet<Block>();
         cherrys = new HashSet<Block>();
         oranges = new HashSet<Block>();
+        snake = new ArrayList<Block>();
 
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
@@ -424,9 +425,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
                 else if (tileMapChar == 'S') { //snakes
                     Block snake1 = new Block(snakeheadLImage, x, y, tileSize , tileSize);
+                    snake.add(snake1);
                 }
                 else if (tileMapChar == 'M') { //snakes
                     Block snake2 = new Block(snakeheadRImage, x, y, tileSize , tileSize);
+                    snake.add(snake2);
                 }
             }
         }
@@ -459,16 +462,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
             }
 
-            if(phase == 2) {
-                for(Block snake : snake)
-                if(snake.name == 'S'){
-                    snake.image = snakeheadLImage;
-                }
-                else if(snake.name == 'M'){
-                    snake.image = snakeheadRImage;
-                }
-            }
-
             pacman.changeMusic("Media/Musics/normalMove.mp3");
             pacman.mainSound = true;
             counter = 0;
@@ -479,7 +472,28 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        if(pacman.mainSound) {
+        if(pacman.mainSound && phase == 1) {
+            if (foods.size() > 30 && pacman.mainMusicCounter == 0) {
+                pacman.changeMusic("Media/Musics/normalMove.mp3");
+                pacman.mainMusicCounter = 1;
+            }
+            else if (foods.size() <= 30 && foods.size() > 20 && pacman.mainMusicCounter == 1) {
+                pacman.changeMusic("Media/Musics/spurtMove1.mp3");
+                pacman.mainMusicCounter = 2;
+            }
+            else if (foods.size() <= 20 && foods.size() > 12 && pacman.mainMusicCounter == 2) {
+                pacman.changeMusic("Media/Musics/spurtMove2.mp3");
+                pacman.mainMusicCounter = 3;
+            }
+            else if (foods.size() <= 12 && foods.size() > 5 && pacman.mainMusicCounter == 3) {
+                pacman.changeMusic("Media/Musics/spurtMove3.mp3");
+                pacman.mainMusicCounter = 4;
+            }
+            else if (foods.size() <= 5 && pacman.mainMusicCounter == 4) {
+                pacman.changeMusic("Media/Musics/spurtMove4.mp3");
+            }
+        }
+        if(pacman.mainSound && phase == 2) {
             if (foods.size() > 30 && pacman.mainMusicCounter == 0) {
                 pacman.changeMusic("Media/Musics/normalMove.mp3");
                 pacman.mainMusicCounter = 1;
@@ -513,6 +527,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         
         for (Block ghost : ghosts) {
             g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
+        }
+
+        for (Block snake : snake) {
+            g.drawImage(snake.image, snake.x, snake.y, snake.width, snake.height, null);
         }
 
         for (Block wall : walls) {
@@ -676,6 +694,69 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
 
+        
+        //check snake collision
+        for (Block snake : snake) {
+
+
+            if (collision(snake, pacman)) {
+                if(!snake.setVulnerable) {
+                    lives -= 1;
+                    if (lives == 0) {
+                        gameOver = true;
+                        return;
+                    }
+                    resetPositions();
+                }
+            }
+
+            if (snake.y == tileSize*9 && snake.direction != 'U' && snake.direction != 'D') {
+                snake.updateDirection('U');
+            }
+            snake.x += snake.velocityX;
+            snake.y += snake.velocityY;
+            for (Block wall : walls) {
+                if (collision(snake, wall) || snake.x <= 0 || snake.x + snake.width >= boardWidth) {
+                    snake.x -= snake.velocityX;
+                    snake.y -= snake.velocityY;
+                    if(pacman.x >= snake.x && pacman.y >= snake.y){
+                        char newDirection = directions3[random.nextInt(10)];
+                        snake.updateDirection(newDirection);
+                    }
+                    else if(pacman.x >= snake.x && pacman.y <= snake.y){
+                        char newDirection = directions[random.nextInt(10)];
+                        snake.updateDirection(newDirection);
+                    }
+                    else if(pacman.x <= snake.x && pacman.y >= snake.y){
+                        char newDirection = directions2[random.nextInt(10)];
+                        snake.updateDirection(newDirection);
+                    }
+                    else if(pacman.x <= snake.x && pacman.y <= snake.y){
+                        char newDirection = directions1[random.nextInt(10)];
+                        snake.updateDirection(newDirection);
+                    }
+                }
+                else if (random.nextInt(30) == 0) {
+                    List<Character> possibleDirections = new ArrayList<>();
+
+                    if (canMove(snake, wall, 'R')) possibleDirections.add('R');
+                    if (canMove(snake, wall, 'L')) possibleDirections.add('L');
+                    if (canMove(snake, wall, 'U')) possibleDirections.add('U');
+                    if (canMove(snake, wall, 'D')) possibleDirections.add('D');
+
+                    if (!possibleDirections.isEmpty()) {
+                        char newDirection = possibleDirections.get(random.nextInt(possibleDirections.size()));
+                        if (newDirection != oppositeDirection(snake.direction)) {
+                            snake.updateDirection(newDirection);
+                        }
+                    }
+                }
+
+            }
+
+        }
+
+
         //check ghost collisions
         for (Block ghost : ghosts) {
 
@@ -711,7 +792,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     }
                 }
             }
-
+        
             if (ghost.y == tileSize*9 && ghost.direction != 'U' && ghost.direction != 'D') {
                 ghost.updateDirection('U');
             }
@@ -756,7 +837,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
             }
         }
-
+        
         //check cherry collision
         Block cherryEaten = null;
         for (Block cherry : cherrys) {
