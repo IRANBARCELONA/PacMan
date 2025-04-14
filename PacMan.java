@@ -681,7 +681,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
             if (collision(ghost, pacman)) {
-                if(ghost.setVulnerable == false) {
+                if(!ghost.setVulnerable) {
                     lives -= 1;
                     if (lives == 0) {
                         gameOver = true;
@@ -690,27 +690,24 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     resetPositions();
                 }
                 else{
-                    for(Block ghosts : scaredGhosts){
-                        if (collision(ghosts, pacman)) {
-                            pacman.play("Media/Musics/ghostEaten.mp3");
-                            score += 400;
-                            ghost.x = ghost.startX;
-                            ghost.y = ghost.startY;
-                            ghost.setVulnerable = false;
-                            if(ghost.name == 'o'){
-                                ghost.image = orangeGhostImage;
-                            }
-                            else if(ghost.name == 'b'){
-                                ghost.image = blueGhostImage;
-                            }
-                            else if(ghost.name == 'r'){
-                                ghost.image = redGhostImage;
-                            }
-                            else if(ghost.name == 'p'){
-                                ghost.image = pinkGhostImage;
-                            }
-                        }
+                    if (collision(ghost, pacman)) {
+                        pacman.play("Media/Musics/ghostEaten.mp3");
+                        score += 400;
+                        ghost.x = ghost.startX;
+                        ghost.y = ghost.startY;
                         ghost.setVulnerable = false;
+                        if(ghost.name == 'o'){
+                            ghost.image = orangeGhostImage;
+                        }
+                        else if(ghost.name == 'b'){
+                            ghost.image = blueGhostImage;
+                        }
+                        else if(ghost.name == 'r'){
+                            ghost.image = redGhostImage;
+                        }
+                        else if(ghost.name == 'p'){
+                            ghost.image = pinkGhostImage;
+                        }
                     }
                 }
             }
