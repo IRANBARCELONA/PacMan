@@ -2,17 +2,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import javax.swing.*;
-import java.util.List;
-import java.util.ArrayList;
+import javax.swing.Timer;
+
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
 import java.io.FileInputStream;
 import java.io.IOException;
-
+import java.util.List;
 
 
 public class PacMan extends JPanel implements ActionListener, KeyListener {
@@ -36,14 +34,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         int orangesLeft = 2;
         int cherrysLeft = 4;
-
-        boolean foodEatingSound = true;
-        boolean mainSound = true;
-        int mainMusicCounter = 0;
-
-        AdvancedPlayer player;
-        Thread musicThread;
-        boolean isPlaying = false;
 
         boolean setVulnerable = false;
 
@@ -70,7 +60,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
 
 
-        Block(Image image, int x, int y, int width, int height, int slife, String sname) {
+        Block(Image image, int x, int y, int width, int height, String sname) {
             this.image = image;
             this.x = x;
             this.y = y;
@@ -82,52 +72,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             this.sname = sname;
         }
 
-        public void play(String filePath) {
-            new Thread(() -> {
-                try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
-                    AdvancedPlayer player = new AdvancedPlayer(fileInputStream);
-                    player.play();
-                } catch (JavaLayerException | IOException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-        }
-
-        public void playRepeatMusic(String filePath) {
-            if (isPlaying) return;
-
-            isPlaying = true;
-            musicThread = new Thread(() -> {
-                while (isPlaying) {
-                    try {
-                        FileInputStream fileInputStream = new FileInputStream(filePath);
-                        player = new AdvancedPlayer(fileInputStream);
-                        player.play();
-
-                    } catch (JavaLayerException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            musicThread.start();
-        }
-
-        private void changeMusic(String filePath) {
-            try {
-                pacman.stopMusic();
-                Thread.sleep(1);
-                pacman.playRepeatMusic(filePath);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void stopMusic() {
-            if (player != null) {
-                player.close();
-                isPlaying = false;
-            }
-        }
 
         void updateDirection(char direction) {
             if(direction == this.direction){
@@ -194,6 +138,19 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    class Position {
+        int x, y;
+        char direction; // 'U', 'D', 'L', 'R'
+
+        Position(int x, int y, char direction) {
+            this.x = x;
+            this.y = y;
+            this.direction = direction;
+        }
+    }
+
+
+
     private int rowCount = 21;
     private int columnCount = 19;
     private int tileSize = 32;
@@ -230,6 +187,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image snakeendLImage;
     private Image snakeendDImage;
 
+    boolean foodEatingSound = true;
+    boolean mainSound = true;
+    int mainMusicCounter = 0;
+
+    AdvancedPlayer player;
+    Thread musicThread;
+    boolean isPlaying = false;
+
     //X = wall, O = skip, P = pac man, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
     /*private String[] tileMap = {
@@ -265,13 +230,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         "XXXXXXXXX XXXXXXXXX",
         "XXXXXXXXX XXXXXXXXX",
         "XXXXXXggg gggXXXXXX",
-        "SNNNNXgNgOgNgXNNNNM",
+        "XXXXXXgNgOgNgXNNNNM",
         "XXXXXXgg PgggXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXbXXXXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
-        "XXXXXXXXXXXXXXXXXXX",
-        "XXXXXXXXXXXXXXXXXXX",
+        "XNE321HNNNNNNNNNNNX",
+        "XNNNNNNNNNNNNNNNNNX",
         "XXXXXXXXXXXXXXXXXXX",
         "XrXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
@@ -290,6 +255,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     Timer gameLoop;
     boolean running = true;
+    // Ai Direction
     char[] directions = {'U', 'U', 'U', 'D', 'L', 'L', 'L', 'R', 'L', 'U'};
     char[] directions1 = {'U', 'U', 'U', 'U', 'R', 'R', 'L', 'D', 'R', 'R'};
     char[] directions2 = {'D', 'D', 'D', 'D', 'L', 'L', 'R', 'U', 'L', 'L'};
@@ -299,15 +265,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int lives = 10;
     int phase = 1;
     boolean gameOver = false;
-    int pacmanPositionx;
-    int pacmanPositiony;
+    int snakeDelay = 2;
+    List<Position> previousPositions = new ArrayList<>();
+
+
+
+
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
-        if(phase == 1)
-            setBackground(Color.BLACK);
-        else if(phase == 2)
-            setBackground(new Color(30,0,0,200));
+        setBackground(Color.BLACK);
         addKeyListener(this);
         setFocusable(true);
 
@@ -329,16 +296,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacmanLeftImage = new ImageIcon("./Media/Images/pacmanLeft.png").getImage();
         pacmanRightImage = new ImageIcon("./Media/Images/pacmanRight.png").getImage();
 
-        snakeheadLImage = new ImageIcon("./Media/Images/snakeheadL.png").getImage();
-        snakeheadRImage = new ImageIcon("./Media/Images/snakeheadR.png").getImage();
-        snakeheadUImage = new ImageIcon("./Media/Images/snakeheadU.png").getImage();
-        snakeheadDImage = new ImageIcon("./Media/Images/snakeheadD.png").getImage();
-        snakebodyHImage = new ImageIcon("./Media/Images/snakebodyH.png").getImage();
-        snakebodyVImage = new ImageIcon("./Media/Images/snakebodyV.png").getImage();
-        snakeendRImage = new ImageIcon("./Media/Images/snakeendR.png").getImage();
-        snakeendUImage = new ImageIcon("./Media/Images/snakeendU.png").getImage();
-        snakeendLImage = new ImageIcon("./Media/Images/snakeendL.png").getImage();
-        snakeendDImage = new ImageIcon("./Media/Images/snakeendD.png").getImage();
+        snakeheadLImage = new ImageIcon("./Media/Images/snakehl.png").getImage();
+        snakeheadRImage = new ImageIcon("./Media/Images/snakehr.png").getImage();
+        snakeheadUImage = new ImageIcon("./Media/Images/snakehu.png").getImage();
+        snakeheadDImage = new ImageIcon("./Media/Images/snakehd.png").getImage();
+        snakebodyHImage = new ImageIcon("./Media/Images/snakebh.png").getImage();
+        snakebodyVImage = new ImageIcon("./Media/Images/snakebv.png").getImage();
+        snakeendRImage = new ImageIcon("./Media/Images/snakeer.png").getImage();
+        snakeendUImage = new ImageIcon("./Media/Images/snakeeu.png").getImage();
+        snakeendLImage = new ImageIcon("./Media/Images/snakeel.png").getImage();
+        snakeendDImage = new ImageIcon("./Media/Images/snakeed.png").getImage();
 
 
 
@@ -413,6 +380,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
     }
+
     public void loadMap2() {
         walls = new HashSet<Block>();
         foods = new HashSet<Block>();
@@ -440,12 +408,24 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     Block food = new Block(null, x + 14, y + 14, 4, 4);
                     foods.add(food);
                 }
-                else if (tileMapChar == 'S') { //snakes
-                    Block snake1 = new Block(snakeheadLImage, x, y, tileSize , tileSize , slife , "S");
+                else if (tileMapChar == 'H') { //snakes
+                    Block snake1 = new Block(snakeheadRImage, x, y, tileSize , tileSize ,"h");
                     snake.add(snake1);
                 }
-                else if (tileMapChar == 'M') { //snakes
-                    Block snake2 = new Block(snakeheadRImage, x, y, tileSize , tileSize , slife , "M");
+                else if (tileMapChar == '1') { //snakes
+                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b1");
+                    snake.add(snake2);
+                }
+                else if (tileMapChar == '2') { //snakes
+                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b2");
+                    snake.add(snake2);
+                }
+                else if (tileMapChar == '3') { //snakes
+                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b3");
+                    snake.add(snake2);
+                }
+                else if (tileMapChar == 'E') { //snakes
+                    Block snake2 = new Block(snakeendRImage, x, y, tileSize , tileSize ,"e");
                     snake.add(snake2);
                 }
             }
@@ -453,88 +433,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void paintComponent(Graphics g) {
-
-        for(Block ghost : ghosts) {
-            if(ghost.setVulnerable){
-                counter += 1;
-                break;
-            }
-        }
-
-        if(counter == 240) {
-            for(Block ghost : ghosts) {
-                if(ghost.name == 'o'){
-                    ghost.image = orangeGhostImage;
-                }
-                else if(ghost.name == 'b'){
-                    ghost.image = blueGhostImage;
-                }
-                else if(ghost.name == 'r'){
-                    ghost.image = redGhostImage;
-                }
-                else if(ghost.name == 'p'){
-                    ghost.image = pinkGhostImage;
-                }
-                ghost.setVulnerable = false;
-
-            }
-
-            pacman.changeMusic("Media/Musics/normalMove.mp3");
-            pacman.mainSound = true;
-            counter = 0;
-        }
-        for(Block ghost : ghosts) {
-            if(counter == 300) {
-                counter = 0;
-            }
-        }
-
-        if(pacman.mainSound && phase == 1) {
-            if (foods.size() > 30 && pacman.mainMusicCounter == 0) {
-                pacman.changeMusic("Media/Musics/normalMove.mp3");
-                pacman.mainMusicCounter = 1;
-            }
-            else if (foods.size() <= 30 && foods.size() > 20 && pacman.mainMusicCounter == 1) {
-                pacman.changeMusic("Media/Musics/spurtMove1.mp3");
-                pacman.mainMusicCounter = 2;
-            }
-            else if (foods.size() <= 20 && foods.size() > 12 && pacman.mainMusicCounter == 2) {
-                pacman.changeMusic("Media/Musics/spurtMove2.mp3");
-                pacman.mainMusicCounter = 3;
-            }
-            else if (foods.size() <= 12 && foods.size() > 5 && pacman.mainMusicCounter == 3) {
-                pacman.changeMusic("Media/Musics/spurtMove3.mp3");
-                pacman.mainMusicCounter = 4;
-            }
-            else if (foods.size() <= 5 && pacman.mainMusicCounter == 4) {
-                pacman.changeMusic("Media/Musics/spurtMove4.mp3");
-            }
-        }
-        if(pacman.mainSound && phase == 2) {
-            if (foods.size() > 30 && pacman.mainMusicCounter == 0) {
-                pacman.changeMusic("Media/Musics/normalMove.mp3");
-                pacman.mainMusicCounter = 1;
-            }
-            else if (foods.size() <= 30 && foods.size() > 20 && pacman.mainMusicCounter == 1) {
-                pacman.changeMusic("Media/Musics/spurtMove1.mp3");
-                pacman.mainMusicCounter = 2;
-            }
-            else if (foods.size() <= 20 && foods.size() > 12 && pacman.mainMusicCounter == 2) {
-                pacman.changeMusic("Media/Musics/spurtMove2.mp3");
-                pacman.mainMusicCounter = 3;
-            }
-            else if (foods.size() <= 12 && foods.size() > 5 && pacman.mainMusicCounter == 3) {
-                pacman.changeMusic("Media/Musics/spurtMove3.mp3");
-                pacman.mainMusicCounter = 4;
-            }
-            else if (foods.size() <= 5 && pacman.mainMusicCounter == 4) {
-                pacman.changeMusic("Media/Musics/spurtMove4.mp3");
-            }
-        }
-
-
-
-
         super.paintComponent(g);
         draw(g);
     }
@@ -618,17 +516,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void move() {
-        pacman.x += pacman.velocityX;
-        pacman.y += pacman.velocityY;
+        pacmanMove();
+        fruitSpawner();
+        checkCollision();
+        phaseHandler();
+    }
 
-        if(pacman.x == 0){
-            pacman.x = tileSize * columnCount;
-        }
-        else if(pacman.x == tileSize * columnCount){
-            pacman.x = 0;
-        }
-
-
+    private void fruitSpawner() {
         if(foods.size() == 150 && pacman.orangesLeft == 2){
             pacman.orangesLeft = 1;
             int x;
@@ -697,11 +591,57 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             Block cherry = new Block(cherryImage, x * tileSize, y * tileSize, tileSize, tileSize);
             cherrys.add(cherry);
         }
+    }
 
+    private void pacmanMove() {
+        pacman.x += pacman.velocityX;
+        pacman.y += pacman.velocityY;
 
+        if(pacman.x == 0){
+            pacman.x = tileSize * columnCount;
+        }
+        else if(pacman.x == tileSize * columnCount){
+            pacman.x = 0;
+        }
+    }
 
+    private void phaseHandler() {
+        if (foods.isEmpty()) {
+            Block orange1 = new Block(orangeImage, ghosts.get(0).x, ghosts.get(0).y, tileSize, tileSize);
+            Block orange2 = new Block(orangeImage, ghosts.get(1).x, ghosts.get(1).y, tileSize, tileSize);
+            Block cherry1 = new Block(cherryImage, ghosts.get(2).x, ghosts.get(2).y, tileSize, tileSize);
+            Block cherry2 = new Block(cherryImage, ghosts.get(3).x, ghosts.get(3).y, tileSize, tileSize);
+            if(phase == 1){
+                phase++;
+                this.setBackground(new Color(30,0,0,200));
+            }
+            else if(phase == 2){
+                loadMap2();
+                oranges.add(orange1);
+                oranges.add(orange2);
+                cherrys.add(cherry1);
+                cherrys.add(cherry2);
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
+                phase++;
+            }
+            if (foods.isEmpty() && phase == 3) {
+                loadMap();
+                resetPositions();
+            }
+        }
+    }
 
+    public boolean collision(Block a, Block b) {
+        return  a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y;
+    }
 
+    public void checkCollision() {
         //check wall collisions
         for (Block wall : walls) {
             if (collision(pacman, wall)) {
@@ -711,69 +651,184 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        
-       // check snake collision
-        for (Block snake : snake) {
+        snake();
+        ghost();
 
-
-            if (collision(snake, pacman)) {
-            
-                lives -= 1;
-                if (lives == 0) {
-                    gameOver = true;
-                    return;
-                }
-                resetPositions2();
+        //check cherry collision
+        Block cherryEaten = null;
+        for (Block cherry : cherrys) {
+            if (collision(pacman, cherry)) {
+                play("Media/Musics/fruitEaten.mp3");
+                cherryEaten = cherry;
+                score += 100;
             }
-        
+        }
+        cherrys.remove(cherryEaten);
 
-            if (snake.y == tileSize*9 && snake.direction != 'U' && snake.direction != 'D') {
-                snake.updateDirection('U');
-            }
-            snake.x += snake.velocityX;
-            snake.y += snake.velocityY;
-            for (Block wall : walls) {
-                if (collision(snake, wall) || snake.x <= 0 || snake.x + snake.width >= boardWidth) {
-                    snake.x -= snake.velocityX;
-                    snake.y -= snake.velocityY;
-                    if(pacman.x >= snake.x && pacman.y >= snake.y){
-                        char newDirection = directions3[random.nextInt(10)];
-                        snake.updateDirection(newDirection);
-                    }
-                    else if(pacman.x >= snake.x && pacman.y <= snake.y){
-                        char newDirection = directions[random.nextInt(10)];
-                        snake.updateDirection(newDirection);
-                    }
-                    else if(pacman.x <= snake.x && pacman.y >= snake.y){
-                        char newDirection = directions2[random.nextInt(10)];
-                        snake.updateDirection(newDirection);
-                    }
-                    else if(pacman.x <= snake.x && pacman.y <= snake.y){
-                        char newDirection = directions1[random.nextInt(10)];
-                        snake.updateDirection(newDirection);
-                    }
+        //check orange collision
+        Block orangeEaten = null;
+        for (Block orange : oranges) {
+            if (collision(pacman, orange)) {
+                mainSound = false;
+                changeMusic("Media/Musics/scaryGhostTime.mp3");
+                orangeEaten = orange;
+                for(Block ghost : ghosts){
+                    ghost.setVulnerable = true;
+                    ghost.image = scaredGhostImage;
                 }
-                else if (random.nextInt(30) == 0) {
-                    List<Character> possibleDirections = new ArrayList<>();
+            }
+        }
+        oranges.remove(orangeEaten);
 
-                    if (canMove(snake, wall, 'R')) possibleDirections.add('R');
-                    if (canMove(snake, wall, 'L')) possibleDirections.add('L');
-                    if (canMove(snake, wall, 'U')) possibleDirections.add('U');
-                    if (canMove(snake, wall, 'D')) possibleDirections.add('D');
+        //check food collision
+        Block foodEaten = null;
+        for (Block food : foods) {
+            if (collision(pacman, food)) {
+                if(foodEatingSound) {
+                    play("Media/Musics/foodEating1.mp3");
+                    foodEatingSound = false;
+                }
+                else {
+                    play("Media/Musics/foodEating2.mp3");
+                    foodEatingSound = true;
+                }
+                foodEaten = food;
+                score += 10;
+            }
+        }
+        foods.remove(foodEaten);
+    }
 
-                    if (!possibleDirections.isEmpty()) {
-                        char newDirection = possibleDirections.get(random.nextInt(possibleDirections.size()));
-                        if (newDirection != oppositeDirection(snake.direction)) {
+    public void snakeImage(char direction){
+        return;
+    }
+
+    public void setSnakeImage(char direction, Block snake){
+        if(snake.sname.equals("h")){
+            if(direction == 'U'){
+                snake.image = snakeheadUImage;
+            }
+            else if(direction == 'D'){
+                snake.image = snakeheadDImage;
+            }
+            else if(direction == 'L'){
+                snake.image = snakeheadLImage;
+            }
+            else if(direction == 'R'){
+                snake.image = snakeheadRImage;
+            }
+        }
+        else if(snake.sname.equals("b")){
+            if(direction == 'U' || direction == 'D'){
+                snake.image = snakebodyVImage;
+            }
+            else if(direction == 'L' || direction == 'R'){
+                snake.image = snakebodyHImage;
+            }
+        }
+        else if(snake.sname.equals("e")){
+            if(direction == 'U'){
+                snake.image = snakeendUImage;
+            }
+            else if(direction == 'D'){
+                snake.image = snakeendDImage;
+            }
+            else if(direction == 'L'){
+                snake.image = snakeendLImage;
+            }
+            else if(direction == 'R'){
+                snake.image = snakeendRImage;
+            }
+        }
+    }
+
+    private int lerp(int current, int target, double alpha) {
+        return (int) (current + (target - current) * alpha);  // تبدیل نتیجه به int
+    }
+
+    public void snake(){
+        ArrayList<Block> snakes = (ArrayList<Block>) snake.clone();
+        for (Block snake : snakes) {
+            if (snake.sname == "h") {
+                if (collision(snake, pacman)) {
+                    lives -= 1;
+                    if (lives == 0) {
+                        gameOver = true;
+                        return;
+                    }
+                    resetPositions2();
+                }
+
+                snake.x += snake.velocityX;
+                snake.y += snake.velocityY;
+
+                for (Block wall : walls) {
+                    if (collision(snake, wall) || snake.x <= 0 || snake.x + snake.width >= boardWidth) {
+                        snake.x -= snake.velocityX;
+                        snake.y -= snake.velocityY;
+                        if (pacman.x >= snake.x && pacman.y >= snake.y) {
+                            char newDirection = directions3[random.nextInt(10)];
+                            previousPositions.add(new Position(snake.x, snake.y, snake.direction));
+                            if (previousPositions.size() > 100) {
+                                previousPositions.remove(0);
+                            }
+                            snake.updateDirection(newDirection);
+                        } else if (pacman.x >= snake.x && pacman.y <= snake.y) {
+                            char newDirection = directions[random.nextInt(10)];
+                            previousPositions.add(new Position(snake.x, snake.y, snake.direction));
+                            if (previousPositions.size() > 100) {
+                                previousPositions.remove(0);
+                            }
+                            snake.updateDirection(newDirection);
+                        } else if (pacman.x <= snake.x && pacman.y >= snake.y) {
+                            char newDirection = directions2[random.nextInt(10)];
+                            previousPositions.add(new Position(snake.x, snake.y, snake.direction));
+                            if (previousPositions.size() > 100) {
+                                previousPositions.remove(0);
+                            }
+                            snake.updateDirection(newDirection);
+                        } else if (pacman.x <= snake.x && pacman.y <= snake.y) {
+                            char newDirection = directions1[random.nextInt(10)];
+                            previousPositions.add(new Position(snake.x, snake.y, snake.direction));
+                            if (previousPositions.size() > 100) {
+                                previousPositions.remove(0);
+                            }
                             snake.updateDirection(newDirection);
                         }
                     }
+                    else if (random.nextInt(30) == 0) {
+                        List<Character> possibleDirections = new ArrayList<>();
+
+                        if (canMove(snake, wall, 'R')) possibleDirections.add('R');
+                        if (canMove(snake, wall, 'L')) possibleDirections.add('L');
+                        if (canMove(snake, wall, 'U')) possibleDirections.add('U');
+                        if (canMove(snake, wall, 'D')) possibleDirections.add('D');
+
+                        if (!possibleDirections.isEmpty()) {
+                            char newDirection = possibleDirections.get(random.nextInt(possibleDirections.size()));
+                            if (newDirection != oppositeDirection(snake.direction)) {
+                                previousPositions.add(new Position(snake.x, snake.y, snake.direction));
+                                if (previousPositions.size() > 100) {
+                                    previousPositions.remove(0);
+                                }
+                                snake.updateDirection(newDirection);
+                            }
+                        }
+                    }
+                    else{
+                        previousPositions.add(new Position(snake.x, snake.y, snake.direction));
+                    }
+
                 }
-
+                setSnakeImage(snake.direction, snake);
             }
-
+            else {
+                //No Fucking Idea....
+            }
         }
-    
+    }
 
+    public void ghost(){
         //check ghost collisions
         for (Block ghost : ghosts) {
 
@@ -789,7 +844,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
                 else{
                     if (collision(ghost, pacman)) {
-                        pacman.play("Media/Musics/ghostEaten.mp3");
+                        play("Media/Musics/ghostEaten.mp3");
                         score += 400;
                         ghost.x = ghost.startX;
                         ghost.y = ghost.startY;
@@ -809,10 +864,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     }
                 }
             }
-        
-            if (ghost.y == tileSize*9 && ghost.direction != 'U' && ghost.direction != 'D') {
-                ghost.updateDirection('U');
-            }
+
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
             for (Block wall : walls) {
@@ -854,85 +906,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
             }
         }
-        
-        //check cherry collision
-        Block cherryEaten = null;
-        for (Block cherry : cherrys) {
-            if (collision(pacman, cherry)) {
-                pacman.play("Media/Musics/fruitEaten.mp3");
-                cherryEaten = cherry;
-                score += 100;
-            }
-        }
-        cherrys.remove(cherryEaten);
-
-        //check orange collision
-        Block orangeEaten = null;
-        for (Block orange : oranges) {
-            if (collision(pacman, orange)) {
-                pacman.mainSound = false;
-                pacman.changeMusic("Media/Musics/scaryGhostTime.mp3");
-                orangeEaten = orange;
-                for(Block ghost : ghosts){
-                    ghost.setVulnerable = true;
-                    ghost.image = scaredGhostImage;
-                }
-            }
-        }
-        oranges.remove(orangeEaten);
-
-        //check food collision
-        Block foodEaten = null;
-        for (Block food : foods) {
-            if (collision(pacman, food)) {
-                if(pacman.foodEatingSound) {
-                    pacman.play("Media/Musics/foodEating1.mp3");
-                    pacman.foodEatingSound = false;
-                }
-                else {
-                    pacman.play("Media/Musics/foodEating2.mp3");
-                    pacman.foodEatingSound = true;
-                }
-                foodEaten = food;
-                score += 10;
-            }
-        }
-        foods.remove(foodEaten);
-
-        if (foods.isEmpty()) {
-            Block orange1 = new Block(orangeImage, ghosts.get(0).x, ghosts.get(0).y, tileSize, tileSize);
-            Block orange2 = new Block(orangeImage, ghosts.get(1).x, ghosts.get(1).y, tileSize, tileSize);
-            Block cherry1 = new Block(cherryImage, ghosts.get(2).x, ghosts.get(2).y, tileSize, tileSize);
-            Block cherry2 = new Block(cherryImage, ghosts.get(3).x, ghosts.get(3).y, tileSize, tileSize);
-            if(phase == 1){
-                phase++;
-            }
-            else if(phase == 2){
-                loadMap2();
-                oranges.add(orange1);
-                oranges.add(orange2);
-                cherrys.add(cherry1);
-                cherrys.add(cherry2);
-                ghosts.remove(ghosts.get(0));
-                ghosts.remove(ghosts.get(0));
-                ghosts.remove(ghosts.get(0));
-                ghosts.remove(ghosts.get(0));
-                phase++;
-            }
-            if (foods.isEmpty() && phase == 3) {
-                loadMap();
-                resetPositions();
-            }
-        }
     }
-
-    public boolean collision(Block a, Block b) {
-        return  a.x < b.x + b.width &&
-                a.x + a.width > b.x &&
-                a.y < b.y + b.height &&
-                a.y + a.height > b.y;
-    }
-
 
     public void resetPositions() {
         pacman.reset();
@@ -953,13 +927,126 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacman.velocityY = 0;
     }
 
+    public void play(String filePath) {
+        new Thread(() -> {
+            try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
+                AdvancedPlayer player = new AdvancedPlayer(fileInputStream);
+                player.play();
+            } catch (JavaLayerException | IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public void playRepeatMusic(String filePath) {
+        if (isPlaying) return;
+
+        isPlaying = true;
+        musicThread = new Thread(() -> {
+            while (isPlaying) {
+                try {
+                    FileInputStream fileInputStream = new FileInputStream(filePath);
+                    player = new AdvancedPlayer(fileInputStream);
+                    player.play();
+
+                } catch (JavaLayerException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        musicThread.start();
+    }
+
+    public void changeMusic(String filePath) {
+        try {
+            stopMusic();
+            Thread.sleep(1);
+            playRepeatMusic(filePath);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopMusic() {
+        if (player != null) {
+            player.close();
+            isPlaying = false;
+        }
+    }
+
+    public void changePacmanMusic() {
+        if(mainSound) {
+            if (foods.size() > 30 && mainMusicCounter == 0) {
+                changeMusic("Media/Musics/normalMove.mp3");
+                mainMusicCounter = 1;
+            }
+            else if (foods.size() <= 30 && foods.size() > 20 && mainMusicCounter == 1) {
+                changeMusic("Media/Musics/spurtMove1.mp3");
+                mainMusicCounter = 2;
+            }
+            else if (foods.size() <= 20 && foods.size() > 12 && mainMusicCounter == 2) {
+                changeMusic("Media/Musics/spurtMove2.mp3");
+                mainMusicCounter = 3;
+            }
+            else if (foods.size() <= 12 && foods.size() > 5 && mainMusicCounter == 3) {
+                changeMusic("Media/Musics/spurtMove3.mp3");
+                mainMusicCounter = 4;
+            }
+            else if (foods.size() <= 5 && mainMusicCounter == 4) {
+                changeMusic("Media/Musics/spurtMove4.mp3");
+            }
+            else if (foods.size() == 0){
+                stopMusic();
+            }
+        }
+    }
+    
+    public void ghostValnrability(){
+        for(Block ghost : ghosts) {
+            if(ghost.setVulnerable){
+                counter += 1;
+                break;
+            }
+        }
+
+        if(counter == 240) {
+            for(Block ghost : ghosts) {
+                if(ghost.name == 'o'){
+                    ghost.image = orangeGhostImage;
+                }
+                else if(ghost.name == 'b'){
+                    ghost.image = blueGhostImage;
+                }
+                else if(ghost.name == 'r'){
+                    ghost.image = redGhostImage;
+                }
+                else if(ghost.name == 'p'){
+                    ghost.image = pinkGhostImage;
+                }
+                ghost.setVulnerable = false;
+
+            }
+
+            changeMusic("Media/Musics/normalMove.mp3");
+            mainSound = true;
+            counter = 0;
+        }
+        for(Block ghost : ghosts) {
+            if(counter == 300) {
+                counter = 0;
+            }
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if(pacman.nextDirection != pacman.direction){
             pacman.updateDirection(pacman.nextDirection);
             pacman.pacmanImage(pacman.nextDirection);
-        } 
+        }
         move();
+        ghostValnrability();
+        changePacmanMusic();
         repaint();
         if (gameOver) {
             gameLoop.stop();
