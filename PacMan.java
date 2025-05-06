@@ -197,7 +197,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     //X = wall, O = skip, P = pac man, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
-    /*private String[] tileMap = {
+    private String[] tileMap2 = {
             "XXXXXXXXXXXXXXXXXXX",
             "X       XX  XX    X",
             "X XXX X XXX    XX X",
@@ -219,7 +219,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "XXX XXX XXXX XXXX X",
             "X                 X",
             "XXXXXXXXXXXXXXXXXXX"
-    };*/
+    };
     private String[] tileMap = {
         "XXXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
@@ -235,8 +235,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         "XXXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXbXXXXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
-        "XNE321HNNNNNNNNNNNX",
-        "XNNNNNNNNNNNNNNNNNX",
+        "XNNNNNHNNXNNNNNNNNX",
+        "XNNNNNNNNNNNNNXNNNX",
         "XXXXXXXXXXXXXXXXXXX",
         "XrXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
@@ -613,7 +613,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             Block cherry2 = new Block(cherryImage, ghosts.get(3).x, ghosts.get(3).y, tileSize, tileSize);
             if(phase == 1){
                 phase++;
-                this.setBackground(new Color(30,0,0,200));
+                this.setBackground(new Color(30,30,0,200));
             }
             else if(phase == 2){
                 loadMap2();
@@ -748,7 +748,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public void snake(){
         ArrayList<Block> snakes = (ArrayList<Block>) snake.clone();
-        for (Block snake : snakes) {
+        for (int i = 0; i < snakes.size(); i++) {
+            Block snake = snakes.get(i);
             if (snake.sname == "h") {
                 if (collision(snake, pacman)) {
                     lives -= 1;
@@ -759,8 +760,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     resetPositions2();
                 }
 
-                snake.x += snake.velocityX;
-                snake.y += snake.velocityY;
+                snake.x += snake.velocityX * 0.75;
+                snake.y += snake.velocityY * 0.75;
 
                 for (Block wall : walls) {
                     if (collision(snake, wall) || snake.x <= 0 || snake.x + snake.width >= boardWidth) {
@@ -823,7 +824,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 setSnakeImage(snake.direction, snake);
             }
             else {
-                //No Fucking Idea....
+                int delay = 3000;
+                int posIndex = previousPositions.size() - 1 - (i * delay);
+    
+                if (posIndex >= 0 && posIndex < previousPositions.size()) {
+                    Position pos = previousPositions.get(posIndex);
+                    snake.x = pos.x;
+                    snake.y = pos.y;
+                    snake.direction = pos.direction;
+                    setSnakeImage(snake.direction, snake);
+                }
             }
         }
     }
