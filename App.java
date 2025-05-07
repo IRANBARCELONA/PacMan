@@ -1,9 +1,11 @@
-import javax.swing.*;
 import java.awt.*;
-import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.advanced.AdvancedPlayer;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.FileInputStream;
 import java.io.IOException;
+import javax.swing.*;
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.advanced.AdvancedPlayer;
 
 public class App {
     private static final int ROW_COUNT = 22;
@@ -72,6 +74,10 @@ public class App {
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setOpaque(false);
 
+        JPanel bottomLeftWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 30, 30));
+        bottomLeftWrapper.setOpaque(false);
+        bottomLeftWrapper.add(menuPanel);
+
         JButton playButton = createMenuButton("Play");
         JButton optionsButton = createMenuButton("Options");
         JButton exitButton = createMenuButton("Exit");
@@ -82,13 +88,13 @@ public class App {
 
         menuPanel.add(Box.createVerticalGlue());
         menuPanel.add(playButton);
-        menuPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(optionsButton);
-        menuPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(exitButton);
         menuPanel.add(Box.createVerticalGlue());
 
-        backgroundPanel.add(menuPanel, BorderLayout.CENTER);
+        backgroundPanel.add(bottomLeftWrapper, BorderLayout.SOUTH);
         frame.setContentPane(backgroundPanel);
         frame.setVisible(true);
 
@@ -97,15 +103,23 @@ public class App {
 
     private static JButton createMenuButton(String text) {
         JButton button = new JButton(text);
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        button.setBackground(new Color(255, 0, 0, 200));
+        button.setAlignmentX(Component.LEFT_ALIGNMENT);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 24));
-        button.setPreferredSize(new Dimension(200, 60));
-        button.setMaximumSize(new Dimension(200, 60));
+        button.setFont(new Font("Arial", Font.BOLD, 20));
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
         button.setFocusPainted(false);
-        button.setOpaque(true);
-        return button;
+        button.setOpaque(false);
+        button.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) {
+                button.setForeground(Color.YELLOW);
+            }
+
+            public void mouseExited(MouseEvent evt) {
+                button.setForeground(Color.WHITE);
+            }
+        });
+    return button;
     }
 
     private static void startGame(JFrame frame) {
