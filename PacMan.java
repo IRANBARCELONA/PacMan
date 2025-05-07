@@ -140,7 +140,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     class Position {
         int x, y;
-        char direction; // 'U', 'D', 'L', 'R'
+        char direction;
 
         Position(int x, int y, char direction) {
             this.x = x;
@@ -235,7 +235,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         "XXXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXbXXXXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
-        "XNNNNNHNNXNNNNNNNNX",
+        "XE54321HNNNNNNNNNNX",
         "XNNNNNNNNNNNNNXNNNX",
         "XXXXXXXXXXXXXXXXXXX",
         "XrXXXXXXXXXXXXXXXXX",
@@ -413,15 +413,23 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     snake.add(snake1);
                 }
                 else if (tileMapChar == '1') { //snakes
-                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b1");
+                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b");
                     snake.add(snake2);
                 }
                 else if (tileMapChar == '2') { //snakes
-                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b2");
+                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b");
                     snake.add(snake2);
                 }
                 else if (tileMapChar == '3') { //snakes
-                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b3");
+                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b");
+                    snake.add(snake2);
+                }
+                else if (tileMapChar == '4') { //snakes
+                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b");
+                    snake.add(snake2);
+                }
+                else if (tileMapChar == '5') { //snakes
+                    Block snake2 = new Block(snakebodyHImage, x, y, tileSize , tileSize ,"b");
                     snake.add(snake2);
                 }
                 else if (tileMapChar == 'E') { //snakes
@@ -699,10 +707,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         foods.remove(foodEaten);
     }
 
-    public void snakeImage(char direction){
-        return;
-    }
-
     public void setSnakeImage(char direction, Block snake){
         if(snake.sname.equals("h")){
             if(direction == 'U'){
@@ -742,12 +746,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    private int lerp(int current, int target, double alpha) {
-        return (int) (current + (target - current) * alpha);  // تبدیل نتیجه به int
-    }
-
     public void snake(){
         ArrayList<Block> snakes = (ArrayList<Block>) snake.clone();
+        Collections.reverse(snakes);
         for (int i = 0; i < snakes.size(); i++) {
             Block snake = snakes.get(i);
             if (snake.sname == "h") {
@@ -826,7 +827,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             else {
                 int delay = 3000;
                 int posIndex = previousPositions.size() - 1 - (i * delay);
-    
+
                 if (posIndex >= 0 && posIndex < previousPositions.size()) {
                     Position pos = previousPositions.get(posIndex);
                     snake.x = pos.x;
