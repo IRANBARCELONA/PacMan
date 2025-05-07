@@ -27,6 +27,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         int startX;
         int startY;
         char direction = 'U'; // U D L R
+        char previousDirection;
         char nextDirection;
         int velocityX = 0;
         int velocityY = 0;
@@ -36,6 +37,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         int cherrysLeft = 4;
 
         boolean setVulnerable = false;
+
+        boolean isTurning = false;
+        int turnTimer = 0;
 
         Block(Image image, int x, int y, int width, int height) {
             this.image = image;
@@ -186,6 +190,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image snakeendUImage;
     private Image snakeendLImage;
     private Image snakeendDImage;
+    private Image snaketurnImage1;
+    private Image snaketurnImage2;
+    private Image snaketurnImage3;
+    private Image snaketurnImage4;
+
 
     boolean foodEatingSound = true;
     boolean mainSound = true;
@@ -306,6 +315,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         snakeendUImage = new ImageIcon("./Media/Images/snakeeu.png").getImage();
         snakeendLImage = new ImageIcon("./Media/Images/snakeel.png").getImage();
         snakeendDImage = new ImageIcon("./Media/Images/snakeed.png").getImage();
+        snaketurnImage1 = new ImageIcon("./Media/Images/snaketrt1.png").getImage();
+        snaketurnImage2 = new ImageIcon("./Media/Images/snaketrt2.png").getImage();
+        snaketurnImage3 = new ImageIcon("./Media/Images/snaketrt3.png").getImage();
+        snaketurnImage4 = new ImageIcon("./Media/Images/snaketrt4.png").getImage();
 
 
 
@@ -723,10 +736,25 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
         else if(snake.sname.equals("b")){
-            if(direction == 'U' || direction == 'D'){
+            if(snake.isTurning) {
+                if ((snake.previousDirection == 'U' && snake.direction == 'R') ||
+                        (snake.previousDirection == 'L' && snake.direction == 'D')) {
+                    snake.image = snaketurnImage4;
+                } else if ((snake.previousDirection == 'U' && snake.direction == 'L') ||
+                        (snake.previousDirection == 'R' && snake.direction == 'D')) {
+                    snake.image = snaketurnImage1;
+                } else if ((snake.previousDirection == 'D' && snake.direction == 'R') ||
+                        (snake.previousDirection == 'L' && snake.direction == 'U')) {
+                    snake.image = snaketurnImage3;
+                } else if ((snake.previousDirection == 'D' && snake.direction == 'L') ||
+                        (snake.previousDirection == 'R' && snake.direction == 'U')) {
+                    snake.image = snaketurnImage2;
+                }
+            }
+            else if ((snake.direction == 'U' || snake.direction == 'D') && snake.turnTimer == 0){
                 snake.image = snakebodyVImage;
             }
-            else if(direction == 'L' || direction == 'R'){
+            else if ((snake.direction == 'L' || snake.direction == 'R') && snake.turnTimer == 0){
                 snake.image = snakebodyHImage;
             }
         }
@@ -744,6 +772,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 snake.image = snakeendRImage;
             }
         }
+
     }
 
     public void snake(){
@@ -825,15 +854,46 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 setSnakeImage(snake.direction, snake);
             }
             else {
-                int delay = 3000;
-                int posIndex = previousPositions.size() - 1 - (i * delay);
+                if(snake.previousDirection != snake.direction){
+                    snake.turnTimer = 12;
+                    snake.isTurning = true;
+                    snake.previousDirection = snake.direction;
+                }
 
-                if (posIndex >= 0 && posIndex < previousPositions.size()) {
-                    Position pos = previousPositions.get(posIndex);
-                    snake.x = pos.x;
-                    snake.y = pos.y;
-                    snake.direction = pos.direction;
-                    setSnakeImage(snake.direction, snake);
+                if(snake.turnTimer != 0)
+                    snake.turnTimer--;
+
+                if(snake.turnTimer == 0){
+                    snake.isTurning = false;
+                }
+
+
+                if(previousPositions.size() > 18200) {
+                    int delay = 3000;
+                    int posIndex = previousPositions.size() - 1 - (i * delay);
+                    if (posIndex >= 0 && posIndex < previousPositions.size()) {
+                        Position pos = previousPositions.get(posIndex);
+                        snake.x = pos.x;
+                        snake.y = pos.y;
+                        snake.direction = pos.direction;
+                        setSnakeImage(snake.direction, snake);
+                    }
+                    for(int j = 0; j<100;j++){
+                        previousPositions.remove(0);
+                    }
+
+                }
+                else{
+                    int delay = 3000;
+                    int posIndex = previousPositions.size() - 1 - (i * delay);
+                    if (posIndex >= 0 && posIndex < previousPositions.size()) {
+                        Position pos = previousPositions.get(posIndex);
+                        snake.previousDirection = snake.direction;
+                        snake.x = pos.x;
+                        snake.y = pos.y;
+                        snake.direction = pos.direction;
+                        setSnakeImage(snake.direction, snake);
+                    }
                 }
             }
         }
