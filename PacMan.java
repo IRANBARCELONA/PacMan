@@ -1,7 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.Timer;
@@ -26,12 +25,12 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         int startX;
         int startY;
-        char direction = 'U'; // U D L R
+        char direction; // U D L R
         char previousDirection;
         char nextDirection;
         int velocityX = 0;
         int velocityY = 0;
-        int slife = 2;
+        static int slife = 20;
 
         int orangesLeft = 2;
         int cherrysLeft = 4;
@@ -41,6 +40,12 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         boolean isTurning = false;
         int turnTimer = 0;
 
+        boolean isGunner;
+        boolean isBulletCounting = false;
+        int bulletCount;
+        boolean gunLoaded;
+        int bulletTimer;
+
         Block(Image image, int x, int y, int width, int height) {
             this.image = image;
             this.x = x;
@@ -49,6 +54,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             this.height = height;
             this.startX = x;
             this.startY = y;
+            this.isGunner = false;
+            this.bulletCount = 0;
+            this.gunLoaded = false;
+            this.bulletTimer = 10000;
         }
 
         Block(Image image, int x, int y, int width, int height, boolean setVulnerable, char name) {
@@ -72,7 +81,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             this.height = height;
             this.startX = x;
             this.startY = y;
-            this.slife = 2;
             this.sname = sname;
         }
 
@@ -105,36 +113,72 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
 
         void updateVelocity() {
-            if (this.direction == 'U') {
-                this.velocityX = 0;
-                this.velocityY = -tileSize/8;
+            if(this.sname == "b"){
+                if (this.direction == 'U') {
+                    this.velocityX = 0;
+                    this.velocityY = -tileSize/4;
+                }
+                else if (this.direction == 'D') {
+                    this.velocityX = 0;
+                    this.velocityY = tileSize/4;
+                }
+                else if (this.direction == 'L') {
+                    this.velocityX = -tileSize/4;
+                    this.velocityY = 0;
+                }
+                else if (this.direction == 'R') {
+                    this.velocityX = tileSize/4;
+                    this.velocityY = 0;
+                }
             }
-            else if (this.direction == 'D') {
-                this.velocityX = 0;
-                this.velocityY = tileSize/8;
-            }
-            else if (this.direction == 'L') {
-                this.velocityX = -tileSize/8;
-                this.velocityY = 0;
-            }
-            else if (this.direction == 'R') {
-                this.velocityX = tileSize/8;
-                this.velocityY = 0;
+            else{
+                if (this.direction == 'U') {
+                    this.velocityX = 0;
+                    this.velocityY = -tileSize/8;
+                }
+                else if (this.direction == 'D') {
+                    this.velocityX = 0;
+                    this.velocityY = tileSize/8;
+                }
+                else if (this.direction == 'L') {
+                    this.velocityX = -tileSize/8;
+                    this.velocityY = 0;
+                }
+                else if (this.direction == 'R') {
+                    this.velocityX = tileSize/8;
+                    this.velocityY = 0;
+                }
             }
         }
-        public void pacmanImage(char directoin){
-            if (direction == 'U') {
-                pacman.image = pacmanUpImage;
+        public void pacmanImage(char direction, boolean gunner){
+            if(isPacmanCanMove(pacman, direction)){
+                if (direction == 'U') {
+                    if(!gunner)
+                        pacman.image = pacmanUpImage;
+                    else
+                        pacman.image = pacmanGUpImage;
+                }
+                else if (direction == 'D') {
+                    if(!gunner)
+                        pacman.image = pacmanDownImage;
+                    else
+                        pacman.image = pacmanGDownImage;
+                }
+                else if (direction == 'L') {
+                    if(!gunner)
+                        pacman.image = pacmanLeftImage;
+                    else
+                        pacman.image = pacmanGLeftImage;
+                }
+                else if (direction == 'R') {
+                    if(!gunner)
+                        pacman.image = pacmanRightImage;
+                    else
+                        pacman.image = pacmanGRightImage;
+                }
             }
-            else if (direction == 'D') {
-                pacman.image = pacmanDownImage;
-            }
-            else if (direction == 'L') {
-                pacman.image = pacmanLeftImage;
-            }
-            else if (direction == 'R') {
-                pacman.image = pacmanRightImage;
-            }
+
+
         }
         void reset() {
             this.x = this.startX;
@@ -161,7 +205,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int boardWidth = columnCount * tileSize ;
     private int boardHeight = rowCount * tileSize;
     private int counter = 0;
-    private int slife = 2;
 
     private Image wallImage;
     private Image wallRPImage;
@@ -179,6 +222,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image pacmanDownImage;
     private Image pacmanLeftImage;
     private Image pacmanRightImage;
+    private Image pacmanGUpImage;
+    private Image pacmanGDownImage;
+    private Image pacmanGLeftImage;
+    private Image pacmanGRightImage;
+
+    private Image gunImage;
+    private Image bulletUImage;
+    private Image bulletDImage;
+    private Image bulletRImage;
+    private Image bulletLImage;
 
     private Image snakeheadLImage;
     private Image snakeheadRImage;
@@ -234,16 +287,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         "XXXXXXXXXXXXXXXXXXX",
         "XXXXXXXXXXXXXXXXXXX",
         "XoXXXXXXXXXXXXXXXXX",
-        "XXXXXXXXXXXXXXXXXXX",
-        "XXXXXXXX  NNNNNpXXX",
+        "XNXXXXXXXXXXXXXXXXX",
+        "XNNNNNNNNNNNNNNpXXX",
         "XXXXXXXXX XXXXXXXXX",
         "XXXXXXXXX XXXXXXXXX",
         "XXXXXXggg gggXXXXXX",
         "XXXXXXgNgOgNgXNNNNM",
         "XXXXXXgg PgggXXXXXX",
-        "XXXXXXXXXXXXXXXXXXX",
+        "XXXXXXXXXNXXXXXXXXX",
         "XXXXXXXXXbXXXXXXXXX",
-        "XXXXXXXXXXXXXXXXXXX",
+        "XXXXXXXXXNXXXXXXXXX",
         "XE54321HNNNNNNNNNNX",
         "XNNNNNNNNNNNNNXNNNX",
         "XXXXXXXXXXXXXXXXXXX",
@@ -260,6 +313,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     HashSet<Block> cherrys;
     HashSet<Block> oranges;
     ArrayList<Block> snake;
+    ArrayList<Block> guns;
     Block pacman;
 
     Timer gameLoop;
@@ -304,6 +358,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacmanDownImage = new ImageIcon("./Media/Images/pacmanDown.png").getImage();
         pacmanLeftImage = new ImageIcon("./Media/Images/pacmanLeft.png").getImage();
         pacmanRightImage = new ImageIcon("./Media/Images/pacmanRight.png").getImage();
+        pacmanGUpImage = new ImageIcon("./Media/Images/pacmangunu.png").getImage();
+        pacmanGDownImage = new ImageIcon("./Media/Images/pacmangund.png").getImage();
+        pacmanGLeftImage = new ImageIcon("./Media/Images/pacmangunl.png").getImage();
+        pacmanGRightImage = new ImageIcon("./Media/Images/pacmangunr.png").getImage();
+
+        bulletUImage = new ImageIcon("./Media/Images/bulletu.png").getImage();
+        bulletDImage = new ImageIcon("./Media/Images/bulletd.png").getImage();
+        bulletLImage = new ImageIcon("./Media/Images/bulletl.png").getImage();
+        bulletRImage = new ImageIcon("./Media/Images/bulletr.png").getImage();
+        gunImage = new ImageIcon("./Media/Images/gun.png").getImage();
 
         snakeheadLImage = new ImageIcon("./Media/Images/snakehl.png").getImage();
         snakeheadRImage = new ImageIcon("./Media/Images/snakehr.png").getImage();
@@ -341,6 +405,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         cherrys = new HashSet<Block>();
         oranges = new HashSet<Block>();
         scaredGhosts = new HashSet<Block>();
+        guns = new ArrayList<Block>();
         snake = new ArrayList<>();
 
         for (int r = 0; r < rowCount; r++) {
@@ -395,11 +460,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void loadMap2() {
-        walls = new HashSet<Block>();
-        foods = new HashSet<Block>();
-        cherrys = new HashSet<Block>();
-        oranges = new HashSet<Block>();
-        snake = new ArrayList<Block>();
 
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
@@ -464,7 +524,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         for (Block ghost : ghosts) {
             g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
         }
-
         for (Block snake : snake) {
             g.drawImage(snake.image, snake.x, snake.y, snake.width, snake.height, null);
         }
@@ -480,9 +539,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         for (Block orange : oranges) {
             g.drawImage(orange.image, orange.x, orange.y, orange.width, orange.height, null);
         }
+
         for (Block scaredGhost : scaredGhosts) {
             g.drawImage(scaredGhost.image, scaredGhost.x, scaredGhost.y, scaredGhost.width, scaredGhost.height, null);
         }
+
+        for(Block gun : guns) {
+            g.drawImage(gun.image, gun.x, gun.y, gun.width, gun.height,null);
+        }
+
+
 
 
         g.setColor(Color.YELLOW);
@@ -498,6 +564,29 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         else {
             g.drawString("LIVES: x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/1, tileSize/1);
         }
+
+        if(pacman.isBulletCounting){
+            g.drawString("Bullets : " + String.valueOf(pacman.bulletCount) + "X", tileSize, (rowCount - 1) * tileSize);
+        }
+
+    }
+
+    public boolean isPacmanCanMove(Block block, char direction) {
+        for (Block wall : walls) {
+            if(direction == 'U' && wall.y == block.y + tileSize){
+                return false;
+            }
+            else if(direction == 'R' && wall.x == block.x - tileSize){
+                return false;
+            }
+            else if(direction == 'L' && wall.x == block.x + tileSize){
+                return false;
+            }
+            else if(direction == 'D' && wall.y == block.y - tileSize){
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean canMove(Block block, Block wall, char direction){
@@ -541,7 +630,22 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         fruitSpawner();
         checkCollision();
         phaseHandler();
+        bulletMove();
     }
+
+    public void bulletSpawner(){
+        new Timer(pacman.bulletTimer, e -> {
+            int x;
+            int y;
+            do {
+                x = random.nextInt(columnCount);
+                y = random.nextInt(rowCount);
+            }while (tileMap[y].charAt(x) != ' ');
+            Block bullet4 = new Block(bulletUImage, x * tileSize + 5, y * tileSize + 5, tileSize * 2/3, tileSize * 2/3, "bullet");
+            guns.add(bullet4);
+        }).start();
+    }
+
 
     private void fruitSpawner() {
         if(foods.size() == 150 && pacman.orangesLeft == 2){
@@ -626,29 +730,82 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    private void bulletMove() {
+        for(Block bullet : guns){
+            if(bullet.sname == "b"){
+                bullet.x += bullet.velocityX;
+                bullet.y += bullet.velocityY;
+
+                if(bullet.x == 0){
+                    bullet.x = tileSize * columnCount;
+                }
+                else if(bullet.x == tileSize * columnCount){
+                    bullet.x = 0;
+                }
+
+            }
+        }
+    }
+
+    private void gunShot(){
+        if(pacman.bulletCount > 0 && pacman.isGunner) {
+            play("Media/Musics/gunshot.mp3");
+            char direction = pacman.direction;
+            Block bullet;
+            switch (direction) {
+                case 'L':
+                    bullet = new Block(bulletLImage, pacman.x - tileSize, pacman.y + 9, tileSize / 2, tileSize / 2, "b");
+                    guns.add(bullet);
+                    bullet.updateDirection(direction);
+                    pacman.bulletCount--;
+                    break;
+                case 'R':
+                    bullet = new Block(bulletRImage, pacman.x + tileSize, pacman.y + 9, tileSize / 2 , tileSize / 2, "b");
+                    guns.add(bullet);
+                    bullet.updateDirection(direction);
+                    pacman.bulletCount--;
+                    break;
+                case 'U':
+                    bullet = new Block(bulletUImage, pacman.x + 9, pacman.y - tileSize, tileSize / 2, tileSize / 2, "b");
+                    guns.add(bullet);
+                    bullet.updateDirection(direction);
+                    pacman.bulletCount--;
+                    break;
+                case 'D':
+                    bullet = new Block(bulletDImage, pacman.x + 7 , pacman.y + tileSize, tileSize / 2, tileSize / 2, "b");
+                    guns.add(bullet);
+                    bullet.updateDirection(direction);
+                    pacman.bulletCount--;
+                    break;
+            }
+        }
+    }
+
     private void phaseHandler() {
         if (foods.isEmpty()) {
-            Block orange1 = new Block(orangeImage, ghosts.get(0).x, ghosts.get(0).y, tileSize, tileSize);
-            Block orange2 = new Block(orangeImage, ghosts.get(1).x, ghosts.get(1).y, tileSize, tileSize);
-            Block cherry1 = new Block(cherryImage, ghosts.get(2).x, ghosts.get(2).y, tileSize, tileSize);
-            Block cherry2 = new Block(cherryImage, ghosts.get(3).x, ghosts.get(3).y, tileSize, tileSize);
             if(phase == 1){
                 phase++;
                 this.setBackground(new Color(30,30,0,200));
             }
             else if(phase == 2){
+                stopMusic();
+                pacman.isBulletCounting = true;
+                Block gun = new Block(gunImage, ghosts.get(0).x, ghosts.get(0).y, tileSize, tileSize, "gun");
+                Block bullet = new Block(bulletUImage, ghosts.get(1).x + 5, ghosts.get(1).y + 5, tileSize * 2/3, tileSize * 2/3, "bullet");
+                Block bullet2 = new Block(bulletUImage, ghosts.get(2).x + 5, ghosts.get(2).y + 5, tileSize * 2/3, tileSize * 2/3, "bullet");
+                Block bullet3 = new Block(bulletUImage, ghosts.get(3).x + 5, ghosts.get(3).y + 5, tileSize * 2/3, tileSize * 2/3, "bullet");
+                guns.add(gun);
+                guns.add(bullet);
+                guns.add(bullet2);
+                guns.add(bullet3);
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
+                ghosts.remove(ghosts.get(0));
                 loadMap2();
-                oranges.add(orange1);
-                oranges.add(orange2);
-                cherrys.add(cherry1);
-                cherrys.add(cherry2);
-                ghosts.remove(ghosts.get(0));
-                ghosts.remove(ghosts.get(0));
-                ghosts.remove(ghosts.get(0));
-                ghosts.remove(ghosts.get(0));
                 phase++;
             }
-            if (foods.isEmpty() && phase == 3) {
+            if (foods.isEmpty() && phase == 4) {
                 loadMap();
                 resetPositions();
             }
@@ -718,6 +875,55 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
         foods.remove(foodEaten);
+
+        //check gun and bullet collision
+        Block gunTaken = null;
+        Block bulletDestroyed = null;
+        if(pacman.isGunner && !pacman.gunLoaded){
+            playNTimes("Media/Musics/loadgun.mp3", pacman.bulletCount);
+            pacman.gunLoaded = true;
+        }
+        for(Block gun: guns){
+            if(collision(pacman, gun)){
+                if(gun.sname == "gun"){
+                    pacman.isGunner = true;
+                    pacman.pacmanImage(pacman.direction, pacman.isGunner);
+                }
+                else if(gun.sname == "bullet"){
+                    pacman.bulletCount += 1;
+                    if(pacman.isGunner){
+                        play("Media/Musics/loadgun.mp3");
+                    }
+
+                }
+                gunTaken = gun;
+            }
+
+            for(Block wall : walls){
+                if(collision(gun, wall)){
+                    bulletDestroyed = gun;
+                }
+            }
+
+            for(Block snake : snake){
+                if(collision(gun, snake)){
+                    if(gun.sname == "b") {
+                        bulletDestroyed = gun;
+                        if(snake.sname == "h"){
+                            snake.slife -= 3;
+                        }
+                        else{
+                            snake.slife--;
+                        }
+                    }
+                }
+            }
+
+        }
+        guns.remove(gunTaken);
+        guns.remove(bulletDestroyed);
+
+
     }
 
     public void setSnakeImage(char direction, Block snake){
@@ -759,10 +965,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
         else if(snake.sname.equals("e")){
-            if(direction == 'U'){
+            if(direction == 'D'){
                 snake.image = snakeendUImage;
             }
-            else if(direction == 'D'){
+            else if(direction == 'U'){
                 snake.image = snakeendDImage;
             }
             else if(direction == 'L'){
@@ -826,8 +1032,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                             }
                             snake.updateDirection(newDirection);
                         }
-                    }
-                    else if (random.nextInt(30) == 0) {
+                    } else if (random.nextInt(30) == 0) {
                         List<Character> possibleDirections = new ArrayList<>();
 
                         if (canMove(snake, wall, 'R')) possibleDirections.add('R');
@@ -845,31 +1050,29 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                                 snake.updateDirection(newDirection);
                             }
                         }
-                    }
-                    else{
+                    } else {
                         previousPositions.add(new Position(snake.x, snake.y, snake.direction));
                     }
 
                 }
                 setSnakeImage(snake.direction, snake);
-            }
-            else {
-                if(snake.previousDirection != snake.direction){
-                    snake.turnTimer = 12;
+            } else {
+                if (snake.previousDirection != snake.direction) {
+                    snake.turnTimer = 0;
                     snake.isTurning = true;
                     snake.previousDirection = snake.direction;
                 }
 
-                if(snake.turnTimer != 0)
+                if (snake.turnTimer != 0)
                     snake.turnTimer--;
 
-                if(snake.turnTimer == 0){
+                if (snake.turnTimer == 0) {
                     snake.isTurning = false;
                 }
 
 
-                if(previousPositions.size() > 18200) {
-                    int delay = 3000;
+                if (previousPositions.size() > 30200) {
+                    int delay = 5000;
                     int posIndex = previousPositions.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions.size()) {
                         Position pos = previousPositions.get(posIndex);
@@ -878,12 +1081,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                         snake.direction = pos.direction;
                         setSnakeImage(snake.direction, snake);
                     }
-                    for(int j = 0; j<100;j++){
+                    for (int j = 0; j < 100; j++) {
                         previousPositions.remove(0);
                     }
 
-                }
-                else{
+                } else {
                     int delay = 3000;
                     int posIndex = previousPositions.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions.size()) {
@@ -896,6 +1098,17 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     }
                 }
             }
+
+        }
+
+        if(snake.size() > 0 && snake.get(0).slife == 0){
+            destroySnake();
+        }
+    }
+
+    public void destroySnake(){
+        for(int i = 0; i < snake.size(); i++){
+            snake.remove(i);
         }
     }
 
@@ -935,7 +1148,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     }
                 }
             }
-
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
             for (Block wall : walls) {
@@ -1008,6 +1220,20 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }).start();
     }
+
+    public void playNTimes(String filePath, int times) {
+        new Thread(() -> {
+            for (int i = 0; i < times; i++) {
+                try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
+                    AdvancedPlayer player = new AdvancedPlayer(fileInputStream);
+                    player.play();
+                } catch (JavaLayerException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
 
     public void playRepeatMusic(String filePath) {
         if (isPlaying) return;
@@ -1113,12 +1339,15 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         if(pacman.nextDirection != pacman.direction){
             pacman.updateDirection(pacman.nextDirection);
-            pacman.pacmanImage(pacman.nextDirection);
+            pacman.pacmanImage(pacman.nextDirection, pacman.isGunner);
         }
         move();
         ghostValnrability();
         changePacmanMusic();
         repaint();
+        if(phase == 2){
+            bulletSpawner();
+        }
         if (gameOver) {
             gameLoop.stop();
             loadMap();
@@ -1158,8 +1387,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 running = true;
             }
         }
+        else if(e.getKeyCode() == KeyEvent.VK_E){
+            gunShot();
+        }
 
-        pacman.pacmanImage(pacman.direction);
+        pacman.pacmanImage(pacman.direction, pacman.isGunner);
     }
 
     @Override
@@ -1179,6 +1411,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             pacman.updateDirection('R');
         }
 
-        pacman.pacmanImage(pacman.direction);
+        pacman.pacmanImage(pacman.direction, pacman.isGunner);
     }
 }
