@@ -534,11 +534,6 @@ public class PacMan2 extends JPanel implements ActionListener, KeyListener {
     }
 
     public void loadMap3() {
-        walls = new HashSet<Block>();
-        foods = new HashSet<Block>();
-        lightGhosts = new ArrayList<Block>();
-        cherrys = new HashSet<Block>();
-        oranges = new HashSet<Block>();
 
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
@@ -819,8 +814,10 @@ public class PacMan2 extends JPanel implements ActionListener, KeyListener {
         }
 
         snake();
-        ghost();
-        lightGhost();
+        if(phase < 4)
+            ghost();
+        else
+            lightGhost();
 
         //check cherry collision
         Block cherryEaten = null;

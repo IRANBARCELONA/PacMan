@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.Timer;
@@ -370,7 +371,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         "XXXXXXXXXXXXXXXXXXX"
     };
 
-    HashSet<Block> walls;
+    ArrayList<Block> walls;
     HashSet<Block> foods;
     ArrayList<Block> ghosts;
     HashSet<Block> scaredGhosts;
@@ -476,7 +477,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void loadMap() {
-        walls = new HashSet<Block>();
+        walls = new ArrayList<Block>();
         foods = new HashSet<Block>();
         ghosts = new ArrayList<Block>();
         cherrys = new HashSet<Block>();
@@ -539,6 +540,24 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public void loadMap2() {
 
+        ArrayList<Integer> removeIndex = new ArrayList<>();
+        for(int i = 0; i < walls.size(); i++) {
+            Block wall = walls.get(i);
+            int x = wall.x / tileSize;
+            int y = wall.y / tileSize;
+            char character = tileMap[y].charAt(x);
+            if(character != 'X') {
+                removeIndex.add(i);
+            }
+            walls.get(i).image = wallph2Image;
+        }
+        for (int i = removeIndex.size() - 1; i >= 0; i--) {
+            walls.remove((int) removeIndex.get(i));
+        }
+
+
+
+
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
                 String row = tileMap[r];
@@ -547,8 +566,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 int x = c*tileSize;
                 int y = r*tileSize;
 
+
+
                 if (tileMapChar == 'X') { //block wall
-                    Block wall = new Block(wallImage, x, y, tileSize, tileSize);
+                    Block wall = new Block(wallph2Image, x, y, tileSize, tileSize);
                     walls.add(wall);
                 }
                 else if (tileMapChar == 'g') { //wallRP
@@ -592,6 +613,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void loadMap3() {
+        walls.clear();
+
 
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
@@ -610,19 +633,19 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     walls.add(wall);
                 }
                 else if (tileMapChar == 'G') { //light green ghost
-                    PacMan.Block lightGhost = new PacMan.Block(lightGhostGImage, x, y, tileSize, tileSize, "G");
+                    PacMan.Block lightGhost = new PacMan.Block(blueGhostImage, x, y, tileSize, tileSize, "G");
                     lightGhosts.add(lightGhost);
                 }
                 else if (tileMapChar == 'o') { //light orange ghost
-                    PacMan.Block lightGhost = new PacMan.Block(lightGhostOImage, x, y, tileSize, tileSize, "O");
+                    PacMan.Block lightGhost = new PacMan.Block(blueGhostImage, x, y, tileSize, tileSize, "O");
                     lightGhosts.add(lightGhost);
                 }
                 else if (tileMapChar == 'Y') { //pink ghost
-                    PacMan.Block lightGhost = new PacMan.Block(lightGhostYImage, x, y, tileSize, tileSize, "Y");
+                    PacMan.Block lightGhost = new PacMan.Block(blueGhostImage, x, y, tileSize, tileSize, "Y");
                     lightGhosts.add(lightGhost);
                 }
                 else if (tileMapChar == 'R') { //red ghost
-                    PacMan.Block lightGhost = new PacMan.Block(lightGhostRImage, x, y, tileSize, tileSize, "T");
+                    PacMan.Block lightGhost = new PacMan.Block(blueGhostImage, x, y, tileSize, tileSize, "T");
                     lightGhosts.add(lightGhost);
                 }
                 else if (tileMapChar == 'P') { //pacman
@@ -774,18 +797,27 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         bulletMove();
     }
 
-    public void bulletSpawner(){
-        new Timer(pacman.bulletTimer, e -> {
-            int x;
-            int y;
+    public void bulletSpawner() {
+        if(random.nextInt(300) == 21){
+            int x, y, attempts = 0;
             do {
                 x = random.nextInt(columnCount);
                 y = random.nextInt(rowCount);
-            }while (tileMap[y].charAt(x) != ' ');
-            Block bullet4 = new Block(bulletUImage, x * tileSize + 5, y * tileSize + 5, tileSize * 2/3, tileSize * 2/3, "bullet");
-            guns.add(bullet4);
-        }).start();
+                attempts++;
+            } while (tileMap[y].charAt(x) != ' ' && attempts < 100);
+
+            if (attempts < 100) {
+                Block bullet = new Block(bulletUImage, x * tileSize + 5, y * tileSize + 5, tileSize * 2 / 3, tileSize * 2 / 3, "bullet");
+                guns.add(bullet);
+
+                if (guns.size() > 50) {
+                    guns.remove(0);
+                }
+            }
+        }
     }
+
+
 
     private void fruitSpawner() {
         if(foods.size() == 150 && pacman.orangesLeft == 2){
@@ -922,7 +954,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     private void phaseHandler() {
-        System.out.println(phase);
         if (foods.isEmpty()) {
             if(phase == 1){
                 phase++;
@@ -944,10 +975,12 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 ghosts.remove(ghosts.get(0));
                 ghosts.remove(ghosts.get(0));
                 ghosts.remove(ghosts.get(0));
+                //walls = new HashSet<>();
                 loadMap2();
             }
             else if (phase == 3) {
                 phase++;
+                pacman.pacmanImage(pacman.direction, pacman.isGunner);
                 snake.remove(0);
                 snake.remove(0);
                 snake.remove(0);
@@ -955,6 +988,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 snake.remove(0);
                 snake.remove(0);
                 snake.remove(0);
+                //walls = new HashSet<>();
                 loadMap3();
             }
         }
@@ -1562,10 +1596,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         move();
         ghostValnrability();
         changePacmanMusic();
-        repaint();
-        if(phase == 3){
+        if(phase == 3);
             bulletSpawner();
-        }
+        repaint();
         if (gameOver) {
             gameLoop.stop();
             loadMap();
