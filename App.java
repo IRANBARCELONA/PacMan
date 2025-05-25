@@ -1,16 +1,15 @@
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import javax.imageio.ImageIO;
 import javax.swing.*;
+
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
 
-public class App {
+public class
+App {
     private static final int ROW_COUNT = 22;
     private static final int COLUMN_COUNT = 19;
     private static final int TILE_SIZE = 32;
@@ -80,15 +79,19 @@ public class App {
         bottomLeftWrapper.setOpaque(false);
         bottomLeftWrapper.add(menuPanel);
 
-        JButton playButton = createMenuButton("Play");
+        JButton playOnlineButton = createMenuButton("Play Online");
+        JButton playButton = createMenuButton("Play Offline");
         JButton optionsButton = createMenuButton("Options");
         JButton exitButton = createMenuButton("Exit");
 
+        playOnlineButton.addActionListener(e -> startOnlineGame(frame));
         playButton.addActionListener(e -> startGame(frame));
         optionsButton.addActionListener(e -> showOptions());
         exitButton.addActionListener(e -> System.exit(0));
 
         menuPanel.add(Box.createVerticalGlue());
+        menuPanel.add(playOnlineButton);
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(playButton);
         menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(optionsButton);
@@ -131,6 +134,17 @@ public class App {
 
         frame.revalidate();
         pacmanGame.requestFocus();
+
+        stopMusic();
+    }
+
+    private static void startOnlineGame(JFrame frame) {
+        frame.getContentPane().removeAll();
+        PacmanOnline pacmanOnline = new PacmanOnline();
+        frame.add(pacmanOnline);
+
+        frame.revalidate();
+        pacmanOnline.requestFocus();
 
         stopMusic();
     }
