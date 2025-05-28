@@ -1,16 +1,21 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.Timer;
 
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
-import java.io.FileInputStream;
-import java.io.IOException;
+
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class PacMan extends JPanel implements ActionListener, KeyListener {
@@ -240,7 +245,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image wallImage;
     private Image wallRPImage;
     private Image wallph2Image;
-    private Image wallph3Image;
+    
 
     private Image blueGhostImage;
     private Image orangeGhostImage;
@@ -289,6 +294,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image snaketurnImage3;
     private Image snaketurnImage4;
 
+    BufferedImage[] wallImages;
+    int currentWallImageIndex = 0;
+    BufferedImage wallph3Image;
+
+    ScheduledExecutorService imageScheduler;
+
+    int imagePh = 0;
 
     boolean foodEatingSound = true;
     boolean mainSound = true;
@@ -325,6 +337,30 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     };
 
     private String[] tileMap3 = {
+        "XXXXXXXXXXXXXXXXXXX",
+        "X       XX  XX    X",
+        "X XXX X XXX    XX X",
+        "X o XXX   X X XXX X",
+        "X XXXX  X     X X X",
+        "X    X X  X XXXYX X",
+        "XXX X   XXX       X",
+        "X     X     X XXXXX",
+        "X XXXXggg ggg     X",
+        "N X   gNg gNg XXX M",
+        "X X X gg Pggg   X X",
+        "X     g g g   X   X",
+        "X XX XgGg g XXXX XX",
+        "X  X              X",
+        "X X XX XXX X XXX XX",
+        "X              X  X",
+        "X XXXXX X XX X X XX",
+        "X       X R/  X    X",
+        "XXX XXX XXXX XXXX X",
+        "X                 X",
+        "XXXXXXXXXXXXXXXXXXX"
+};
+
+    private String[] tileMap4 = {
             "XXXXXXXXXXXXXXXXXXX",
             "XXXXXXXXXXXXXXXXXXX",
             "XXXXXXXXXXXXXXXXXXX",
@@ -385,8 +421,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     Block pacman;
 
     Timer gameLoop;
+    ScheduledExecutorService scheduler;
+
     boolean running = true;
-    // Ai Direction
+    
     char[] directions = {'U', 'U', 'U', 'D', 'L', 'L', 'L', 'R', 'L', 'U'};
     char[] directions1 = {'U', 'U', 'U', 'U', 'R', 'R', 'L', 'D', 'R', 'R'};
     char[] directions2 = {'D', 'D', 'D', 'D', 'L', 'L', 'R', 'U', 'L', 'L'};
@@ -412,11 +450,19 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         addKeyListener(this);
         setFocusable(true);
 
-        //load images
+        
         wallImage = new ImageIcon("./Media/Images/wall.png").getImage();
         wallRPImage = new ImageIcon("./Media/Images/wallrp.png").getImage();
         wallph2Image = new ImageIcon("./Media/Images/wallph2Image.png").getImage();
-        wallph3Image = new ImageIcon("./Media/Images/wallph3Image.png").getImage();
+        try {
+            wallImages = new BufferedImage[] {
+                ImageIO.read(new File("./Media/Images/wallB.png")),
+                ImageIO.read(new File("./Media/Images/wallph3Image.png"))
+            };
+            wallph3Image = wallImages[0];
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
         blueGhostImage = new ImageIcon("./Media/Images/blueGhost.png").getImage();
@@ -611,45 +657,62 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     public void loadMap3() {
         walls.clear();
 
+        if(imagePh == 0){
+            for (int r = 0; r < rowCount; r++) {
+                for (int c = 0; c < columnCount; c++) {
+                    String row = tileMap3[r];
+                    char tileMapChar = row.charAt(c);
 
-        for (int r = 0; r < rowCount; r++) {
-            for (int c = 0; c < columnCount; c++) {
-                String row = tileMap3[r];
-                char tileMapChar = row.charAt(c);
+                    int x = c*tileSize;
+                    int y = r*tileSize;
 
-                int x = c*tileSize;
-                int y = r*tileSize;
+                    if (tileMapChar == 'X') { //wall phase 3
+                        PacMan.Block wall = new PacMan.Block(wallph3Image, x, y, tileSize, tileSize);
+                        walls.add(wall);
+                    }
+                    else if (tileMapChar == 'g') { //wallRP
+                        PacMan.Block wall = new PacMan.Block(wallRPImage, x, y, tileSize, tileSize );
+                        walls.add(wall);
+                    }
+                    else if (tileMapChar == 'G') { //light green ghost
+                        PacMan.Block lightGhost = new PacMan.Block(lightGhostGImage, x, y, tileSize, tileSize, "G");
+                        lightGhosts.add(lightGhost);
+                    }
+                    else if (tileMapChar == 'o') { //light orange ghost
+                        PacMan.Block lightGhost = new PacMan.Block(lightGhostOImage, x, y, tileSize, tileSize, "O");
+                        lightGhosts.add(lightGhost);
+                    }
+                    else if (tileMapChar == 'Y') { //pink ghost
+                        PacMan.Block lightGhost = new PacMan.Block(lightGhostYImage, x, y, tileSize, tileSize, "Y");
+                        lightGhosts.add(lightGhost);
+                    }
+                    else if (tileMapChar == 'R') { //red ghost
+                        PacMan.Block lightGhost = new PacMan.Block(lightGhostRImage, x, y, tileSize, tileSize, "T");
+                        lightGhosts.add(lightGhost);
+                    }
+                    else if (tileMapChar == 'P') { //pacman
+                        pacman = new PacMan.Block(pacmanRightImage, x, y, tileSize, tileSize);
+                    }
+                    else if (tileMapChar == ' ') { //food
+                        PacMan.Block food = new PacMan.Block(null, x + 14, y + 14, 4, 4);
+                        foods.add(food);
+                    }
+                }
+            }
+        }
+        else{
+            for (int r = 0; r < rowCount; r++) {
+                for (int c = 0; c < columnCount; c++) {
+                    String row = tileMap3[r];
+                    char tileMapChar = row.charAt(c);
 
-                if (tileMapChar == 'X') { //wall phase 3
-                    PacMan.Block wall = new PacMan.Block(wallph3Image, x, y, tileSize, tileSize);
-                    walls.add(wall);
-                }
-                else if (tileMapChar == 'g') { //wallRP
-                    PacMan.Block wall = new PacMan.Block(wallRPImage, x, y, tileSize, tileSize );
-                    walls.add(wall);
-                }
-                else if (tileMapChar == 'G') { //light green ghost
-                    PacMan.Block lightGhost = new PacMan.Block(lightGhostGImage, x, y, tileSize, tileSize, "G");
-                    lightGhosts.add(lightGhost);
-                }
-                else if (tileMapChar == 'o') { //light orange ghost
-                    PacMan.Block lightGhost = new PacMan.Block(lightGhostOImage, x, y, tileSize, tileSize, "O");
-                    lightGhosts.add(lightGhost);
-                }
-                else if (tileMapChar == 'Y') { //pink ghost
-                    PacMan.Block lightGhost = new PacMan.Block(lightGhostYImage, x, y, tileSize, tileSize, "Y");
-                    lightGhosts.add(lightGhost);
-                }
-                else if (tileMapChar == 'R') { //red ghost
-                    PacMan.Block lightGhost = new PacMan.Block(lightGhostRImage, x, y, tileSize, tileSize, "T");
-                    lightGhosts.add(lightGhost);
-                }
-                else if (tileMapChar == 'P') { //pacman
-                    pacman = new PacMan.Block(pacmanRightImage, x, y, tileSize, tileSize);
-                }
-                else if (tileMapChar == ' ') { //food
-                    PacMan.Block food = new PacMan.Block(null, x + 14, y + 14, 4, 4);
-                    foods.add(food);
+                    int x = c*tileSize;
+                    int y = r*tileSize;
+
+                    if (tileMapChar == 'X') { //wall phase 3
+                        PacMan.Block wall = new PacMan.Block(wallph3Image, x, y, tileSize, tileSize);
+                        walls.add(wall);
+                    }
                 }
             }
         }
@@ -929,7 +992,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     private void gunShot(){
         if(pacman.bulletCount > 0 && pacman.isGunner) {
-            play("Media/Musics/gunshot.mp3");
+            AudioManager.play("gunShot" , false);
             char direction = pacman.direction;
             Block bullet;
             switch (direction) {
@@ -994,18 +1057,27 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
             }
             else if (phase == 3) {
-                if (phase == 3) { //snake.isEmpty() && snake2.isEmpty()
-                    subtitle1 = false;
+                if(snake.isEmpty() && snake2.isEmpty())
                     phase3();
+                if (phase == 3) { //snake.isEmpty() && snake2.isEmpty() && food empty
+                    this.setBackground(new Color(0,0,0,200));
                     phase++;
                     snake.clear();
                     snake2.clear();
                     guns.clear();
-                    loadMap3();
+                    imageScheduler = Executors.newScheduledThreadPool(1);
+                    imageScheduler.scheduleAtFixedRate(() -> {
+                        currentWallImageIndex = (currentWallImageIndex + 1) % wallImages.length;
+                        wallph3Image = wallImages[currentWallImageIndex];
+                        
+                        
+                        loadMap3();
+                        repaint();
+                        imagePh++;
+                    }, 0, 5, TimeUnit.SECONDS);
                     pacman.pacmanImage(pacman.direction, pacman.isGunner);
                 }
                 else {
-                    subtitle1 = false;
                     gameLoop.stop();
                     App.win(App.frame , score , phase);
                     resetGame();
@@ -1022,13 +1094,25 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void phase2(){
-        play("Media/Musics/ph2Start.mp3");
+        AudioManager.play("ph2Start", false);
         subtitle1 = true;
+
+        scheduler = Executors.newScheduledThreadPool(1);
+        Runnable task = () -> {
+            subtitle1 = false;
+        };
+         scheduler.schedule(task, 9, TimeUnit.SECONDS);
     }
 
     public void phase3(){
-        play("Media/Musics/ph2End.mp3");
+        AudioManager.play("ph2End", false);
         subtitle2 = true;
+        scheduler = Executors.newScheduledThreadPool(1);
+
+        Runnable task = () -> {
+            subtitle2 = false;
+        };
+         scheduler.schedule(task, 15, TimeUnit.SECONDS);
     }
 
     public boolean collision(Block a, Block b) {
@@ -1053,7 +1137,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         Block cherryEaten = null;
         for (Block cherry : cherrys) {
             if (collision(pacman, cherry)) {
-                play("Media/Musics/fruitEaten.mp3");
+                AudioManager.play("fruitEaten", false);
                 cherryEaten = cherry;
                 score += 100;
             }
@@ -1078,11 +1162,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         for (Block food : foods) {
             if (collision(pacman, food)) {
                 if(foodEatingSound) {
-                    play("Media/Musics/foodEating1.mp3");
+                    AudioManager.play("foodEating1", false);
                     foodEatingSound = false;
                 }
                 else {
-                    play("Media/Musics/foodEating2.mp3");
+                    AudioManager.play("foodEating2", false);
                     foodEatingSound = true;
                 }
                 foodEaten = food;
@@ -1091,7 +1175,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         foods.remove(foodEaten);
 
-        //check gun and bullet collision
+        
         Block gunTaken = null;
         Block bulletDestroyed = null;
         if(pacman.isGunner && !pacman.gunLoaded){
@@ -1107,7 +1191,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 else if(gun.sname == "bullet"){
                     pacman.bulletCount += 1;
                     if(pacman.isGunner){
-                        play("Media/Musics/loadgun.mp3");
+                        AudioManager.play("loadGun", false);
                     }
 
                 }
@@ -1508,7 +1592,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
                 else{
                     if (collision(ghost, pacman)) {
-                        play("Media/Musics/ghostEaten.mp3");
+                        AudioManager.play("ghostEaten", false);
                         score += 400;
                         ghost.x = ghost.startX;
                         ghost.y = ghost.startY;

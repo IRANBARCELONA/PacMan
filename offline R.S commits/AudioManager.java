@@ -1,16 +1,14 @@
-import javax.sound.sampled.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import javax.sound.sampled.*;
 
 public class AudioManager {
 
     private static Map<String, Clip> sounds = new HashMap<>();
+    private static Map<String, Boolean> isMusicMap = new HashMap<>();
     private static float musicVolume = 0.5f;
     private static float sfxVolume = 0.5f;
-    private static float volumeLevel;
-
-    public static Clip currentClip;
 
     public static void loadSound(String name, String filePath, boolean isMusic) {
         try {
@@ -18,6 +16,7 @@ public class AudioManager {
             Clip clip = AudioSystem.getClip();
             clip.open(audioStream);
             sounds.put(name, clip);
+            isMusicMap.put(name, isMusic);
             setVolume(name, isMusic ? musicVolume : sfxVolume);
         } catch (Exception e) {
             System.out.println("Error loading sound: " + name + " - " + e.getMessage());
@@ -46,14 +45,18 @@ public class AudioManager {
     public static void setMusicVolume(float volume) {
         musicVolume = volume;
         for (String name : sounds.keySet()) {
-            setVolume(name, volumeLevel);
+            if (isMusicMap.getOrDefault(name, false)) {
+                setVolume(name, musicVolume);
+            }
         }
     }
 
     public static void setSfxVolume(float volume) {
         sfxVolume = volume;
         for (String name : sounds.keySet()) {
-            setVolume(name, volumeLevel);
+            if (!isMusicMap.getOrDefault(name, false)) {
+                setVolume(name, sfxVolume);
+            }
         }
     }
 
@@ -70,4 +73,3 @@ public class AudioManager {
         }
     }
 }
-

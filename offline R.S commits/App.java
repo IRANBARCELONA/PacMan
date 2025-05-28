@@ -9,6 +9,7 @@ import javazoom.jl.player.advanced.AdvancedPlayer;
 
 
 public class App {
+    public static JFrame frame;
     private static final int ROW_COUNT = 22;
     private static final int COLUMN_COUNT = 19;
     private static final int TILE_SIZE = 32;
@@ -21,6 +22,7 @@ public class App {
     private static boolean isPlaying = false;
 
     private static int currentVolume = 50;
+    private static float mainVolume;
     
     private static PacMan pacmanGame;
     public static void playRepeatMusic(String filePath) {
@@ -50,7 +52,6 @@ public class App {
     }
     
     
-    public static JFrame frame;
 
     public static void main(String[] args) {
         frame = new JFrame("Pac Man");
@@ -58,11 +59,28 @@ public class App {
         frame.setSize(BOARD_WIDTH, BOARD_HEIGHT);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
-    
+
+        AudioManager.loadSound("menuMusic", "Media/Musics/menuMusic.wav", true);
+        AudioManager.loadSound("gunShot", "Media/Musics/gunShot.wav", false);
+        AudioManager.loadSound("foodEating1", "Media/Musics/foodEating1.wav", false);
+        AudioManager.loadSound("foodEating2", "Media/Musics/foodEating2.wav", false);
+        AudioManager.loadSound("fruitEaten", "Media/Musics/fruitEaten.wav", false);
+        AudioManager.loadSound("ghostEaten", "Media/Musics/ghostEaten.wav", false);
+        AudioManager.loadSound("loadGun", "Media/Musics/loadGun.wav", false);
+        AudioManager.loadSound("normalMove", "Media/Musics/normalMove.wav", true);
+        AudioManager.loadSound("scaryGhostTime", "Media/Musics/scaryGhostTime.wav", true);
+        AudioManager.loadSound("spurtMove1", "Media/Musics/spurtMove1.wav", true);
+        AudioManager.loadSound("spurtMove2", "Media/Musics/spurtMove2.wav", true);
+        AudioManager.loadSound("spurtMove3", "Media/Musics/spurtMove3.wav", true);
+        AudioManager.loadSound("spurtMove4", "Media/Musics/spurtMove4.wav", true);
+
+
+
+
         showMainMenu(frame);
-    
+        
         frame.setVisible(true);
-        playRepeatMusic("Media/Musics/menuMusic.mp3");
+        AudioManager.play("menuMusic", isPlaying);
     }
 
     public static void showMainMenu(JFrame frame) {
@@ -93,11 +111,13 @@ public class App {
         JButton playButton = createMenuButton("Play");
         JButton playOnButton = createMenuButton("Play Co-op");
         JButton optionsButton = createMenuButton("Options");
+        JButton helpButton = createMenuButton("Help");
         JButton exitButton = createMenuButton("Exit");
     
         playButton.addActionListener(e -> startGame(frame));
         playOnButton.addActionListener(e -> startOnGame(frame));
         optionsButton.addActionListener(e -> showOptions(frame));
+        helpButton.addActionListener(e -> showHelp(frame));
         exitButton.addActionListener(e -> System.exit(0));
     
         menuPanel.add(Box.createVerticalGlue());
@@ -106,6 +126,8 @@ public class App {
         menuPanel.add(playOnButton);
         menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(optionsButton);
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        menuPanel.add(helpButton);
         menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(exitButton);
         menuPanel.add(Box.createVerticalGlue());
@@ -159,46 +181,70 @@ public class App {
         optionsPanel.setBackground(Color.BLACK);
         optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
 
-        JLabel volumeLabel = new JLabel("Volume");
-        volumeLabel.setForeground(Color.WHITE);
-        volumeLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        volumeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        JLabel musicLabel = new JLabel("Music Volume");
+        musicLabel.setForeground(Color.WHITE);
+        musicLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        musicLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JSlider volumeSlider = new JSlider(0, 100, currentVolume);
-        volumeSlider.setMajorTickSpacing(10);
-        volumeSlider.setMinorTickSpacing(5);
-        volumeSlider.setPaintTicks(true);
-        volumeSlider.setPaintLabels(true);
-        volumeSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
-        volumeSlider.setBackground(Color.BLACK);
-        volumeSlider.setForeground(Color.WHITE);
+        JSlider musicSlider = new JSlider(0, 100, 50);
+        musicSlider.setMajorTickSpacing(10);
+        musicSlider.setMinorTickSpacing(5);
+        musicSlider.setPaintTicks(true);
+        musicSlider.setPaintLabels(true);
+        musicSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
+        musicSlider.setBackground(Color.BLACK);
+        musicSlider.setForeground(Color.WHITE);
 
-        volumeSlider.addChangeListener(e -> {
-            currentVolume = volumeSlider.getValue();
-            float volumeNormalized = currentVolume / 100f;
-            AudioManager.setMusicVolume(volumeNormalized);
-            AudioManager.setSfxVolume(volumeNormalized);
+        musicSlider.addChangeListener(e -> {
+            float musicVolume = musicSlider.getValue() / 100f;
+            AudioManager.setMusicVolume(musicVolume);
         });
 
         
+        JLabel sfxLabel = new JLabel("SFX Volume");
+        sfxLabel.setForeground(Color.WHITE);
+        sfxLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        sfxLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JSlider sfxSlider = new JSlider(0, 100, 50);
+        sfxSlider.setMajorTickSpacing(10);
+        sfxSlider.setMinorTickSpacing(5);
+        sfxSlider.setPaintTicks(true);
+        sfxSlider.setPaintLabels(true);
+        sfxSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
+        sfxSlider.setBackground(Color.BLACK);
+        sfxSlider.setForeground(Color.WHITE);
+
+        sfxSlider.addChangeListener(e -> {
+            float sfxVolume = sfxSlider.getValue() / 100f;
+            AudioManager.setSfxVolume(sfxVolume);
+        });
+
         JButton backButton = createMenuButton("Back");
         backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         backButton.addActionListener(e -> showMainMenu(frame));
-
-        optionsPanel.add(Box.createVerticalGlue());
-        optionsPanel.add(volumeLabel);
-        optionsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        optionsPanel.add(volumeSlider);
-        optionsPanel.add(Box.createRigidArea(new Dimension(0, 50)));
+        
+        optionsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        optionsPanel.add(musicLabel);
+        optionsPanel.add(musicSlider);
+        optionsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        optionsPanel.add(sfxLabel);
+        optionsPanel.add(sfxSlider);
+        optionsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         optionsPanel.add(backButton);
-        optionsPanel.add(Box.createVerticalGlue());
 
-        frame.setContentPane(optionsPanel);
+
+        frame.getContentPane().removeAll();
+        frame.getContentPane().add(optionsPanel);
         frame.revalidate();
         frame.repaint();
     }
 
     
+    private static void showHelp(JFrame frame){
+        AudioManager.play("normalMove", isPlaying);
+    }
 
     static void GameOver(JFrame frame , int score) {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
