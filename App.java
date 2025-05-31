@@ -41,7 +41,8 @@ public class App {
         AudioManager.loadSound("spurtMove2", "Media/Musics/spurtMove2.wav", true);
         AudioManager.loadSound("spurtMove3", "Media/Musics/spurtMove3.wav", true);
         AudioManager.loadSound("spurtMove4", "Media/Musics/spurtMove4.wav", true);
-
+        AudioManager.loadSound("deadSnake", "Media/Musics/snakeDead.wav", false);
+        AudioManager.loadSound("ph3", "Media/Musics/ph3Music.wav", false);
 
         showMainMenu(frame);
 
@@ -102,6 +103,8 @@ public class App {
         frame.setContentPane(backgroundPanel);
         frame.revalidate();
         frame.repaint();
+        AudioManager.playLooping("menuMusic");
+        AudioManager.stopLooping("ph3");
     }
 
     private static JButton createMenuButton(String text) {
@@ -130,7 +133,6 @@ public class App {
         AudioManager.stopLooping("menuMusic");
         pacmanGame = new PacMan();
         frame.add(pacmanGame);
-
         frame.revalidate();
         pacmanGame.requestFocus();
     }
@@ -244,7 +246,6 @@ public class App {
         });
         button.addActionListener(e -> showMainMenu(frame));
 
-        // چیدن آیتم‌ها
         gameOverPanel.add(Box.createVerticalGlue());
         gameOverPanel.add(imageLabel);
         gameOverPanel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -253,7 +254,6 @@ public class App {
         gameOverPanel.add(button);
         gameOverPanel.add(Box.createVerticalGlue());
 
-        // پنل wrapper برای وسط‌چینی کلی با GridBagLayout
         JPanel wrapper = new JPanel(new GridBagLayout());
         wrapper.setBackground(Color.BLACK);
         wrapper.add(gameOverPanel);
@@ -261,8 +261,8 @@ public class App {
         frame.setContentPane(wrapper);
         frame.revalidate();
         frame.repaint();
-    }
 
+    }
 
     static void win(JFrame frame , int score , int phase) {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -325,6 +325,8 @@ public class App {
         frame.setContentPane(wrapper);
         frame.revalidate();
         frame.repaint();
+
+
     }
 
 

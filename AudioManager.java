@@ -8,7 +8,8 @@ public class AudioManager {
     private static Map<String, Boolean> loopingMap = new HashMap<>();
     private static Map<String, Clip> sounds = new HashMap<>();
     private static Map<String, Boolean> isMusicMap = new HashMap<>();
-    private static float musicVolume = 0.5f;
+
+    private static float musicVolume = 0.7f;
     private static float sfxVolume = 0.5f;
 
     public static void loadSound(String name, String filePath, boolean isMusic) {
@@ -45,11 +46,43 @@ public class AudioManager {
         }
     }
 
-    public static void play(String name, boolean loop) {
+    public static void play(String name) {
         Clip clip = sounds.get(name);
         if (clip.isRunning()) clip.stop();
         clip.setFramePosition(0);
         clip.start();
+    }
+
+    public static void playNTimes(String name, int times) {
+        Clip clip = sounds.get(name);
+        if (clip == null || times <= 0) return;
+
+        if (clip.isRunning()) clip.stop();
+        clip.setFramePosition(0);
+        final int[] count = {0};
+
+        LineListener listener = new LineListener() {
+            @Override
+            public void update(LineEvent event) {
+                if (event.getType() == LineEvent.Type.STOP) {
+                    count[0]++;
+                    if (count[0] < times) {
+                        clip.setFramePosition(0);
+                        clip.start();
+                    } else {
+                        clip.removeLineListener(this);
+                    }
+                }
+            }
+        };
+
+        clip.addLineListener(listener);
+        clip.start();
+    }
+
+    public static void changeMusic(String name1, String name2) {
+        stopLooping(name1);
+        playLooping(name2);
     }
 
     public static void stop(String name) {
