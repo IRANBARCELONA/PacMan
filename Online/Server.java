@@ -1,12 +1,15 @@
 package Online;
+
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
+import java.util.*;
 
 public class Server {
     private static final int PORT = 12345;
     private static GameState gameState = new GameState();
     private static int playerCounter = 0;
+    private static final Map<Integer, PrintWriter> clientsOut = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         ExecutorService pool = Executors.newCachedThreadPool();
@@ -14,15 +17,39 @@ public class Server {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Game server started on port " + PORT);
 
+            // اجرای دائمی آپدیت بازی و ارسال وضعیت به کلاینت‌ها
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+            scheduler.scheduleAtFixedRate(() -> {
+                gameState.update();
+                broadcastGameState();
+            }, 0, 40, TimeUnit.MILLISECONDS);
+
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 int playerId = playerCounter++;
-                gameState.addPlayer(playerId, 1, 1);
+                gameState.addPlayer(playerId, 1, 1, 32, 32, "Player" + playerId, 3);
                 pool.execute(new ClientHandler(clientSocket, playerId));
             }
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void broadcastGameState() {
+        StringBuilder state = new StringBuilder("STATE:");
+        for (int id : gameState.getPlayers().keySet()) {
+            GameState.Player p = gameState.getPlayer(id);
+            if (p != null) {
+                int px = p.x / gameState.tileSize;
+                int py = p.y / gameState.tileSize;
+                state.append(id).append(",").append(px).append(",").append(py).append(";");
+            }
+        }
+        String stateStr = state.toString();
+
+        for (PrintWriter out : clientsOut.values()) {
+            out.println(stateStr);
         }
     }
 
@@ -41,34 +68,30 @@ public class Server {
                     PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
             ) {
                 out.println(playerId);
+                clientsOut.put(playerId, out);
 
-                while (true) {
-                    String input = in.readLine();
-                    if (input == null) break;
-
+                String input;
+                while ((input = in.readLine()) != null) {
                     if (input.startsWith("DIR:")) {
+                        char dirChar = ' ';
                         String dir = input.substring(4);
-                        gameState.updatePlayerDirection(playerId, dir);
+                        switch (dir) {
+                            case "UP": dirChar = 'U'; break;
+                            case "DOWN": dirChar = 'D'; break;
+                            case "LEFT": dirChar = 'L'; break;
+                            case "RIGHT": dirChar = 'R'; break;
+                        }
+                        gameState.updatePlayerDirection(playerId, dirChar);
                     }
-
-                    gameState.update();
-
-                    StringBuilder state = new StringBuilder("STATE:");
-                    for (int id : gameState.getPlayers().keySet()) {
-                        GameState.Player p = gameState.getPlayer(id);
-                        state.append(id).append(",").append(p.getX()).append(",").append(p.getY()).append(";");
-                    }
-
-                    out.println(state);
                 }
-
             } catch (IOException e) {
-                System.out.println("Player " + playerId + " disconnected.");
+                e.printStackTrace();
             } finally {
                 gameState.removePlayer(playerId);
+                clientsOut.remove(playerId);
                 try {
                     socket.close();
-                } catch (IOException e) { e.printStackTrace(); }
+                } catch (IOException ignored) {}
             }
         }
     }

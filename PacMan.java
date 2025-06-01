@@ -63,13 +63,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             this.startX = x;
             this.startY = y;
             this.isGunner = false;
-            this.bulletCount = 0;
+            this.bulletCount = 2;
             this.gunLoaded = false;
             this.bulletTimer = 10000;
             this.gunCoolDown = 0;
             this.gunshoted = false;
-            this.slife = 2;
-            this.slife2 = 2;
         }
 
         Block(Image image, int x, int y, int width, int height, boolean setVulnerable, char name) {
@@ -513,6 +511,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         snaketurnImage3 = new ImageIcon("./Media/Images/snaketrt3.png").getImage();
         snaketurnImage4 = new ImageIcon("./Media/Images/snaketrt4.png").getImage();
 
+
+        pacman.slife = 1;
+        pacman.slife2 = 1;
 
 
         loadMap();

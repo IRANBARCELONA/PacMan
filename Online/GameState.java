@@ -6,58 +6,96 @@ import java.util.Map;
 
 public class GameState {
 
-    public static class Player {
-        private int x, y;
-        private String direction;
+    public class Player {
+        public int x, y;
+        private int velocityX, velocityY;
+        public char direction;
+        private String userName;
+        private int width, height;
+        private int lives;
+        private int bulletCount;
+        private int startX, startY;
 
-        public Player(int x, int y) {
+        Player(int x, int y, int width, int height, String userName, int lives) {
+            this.startX = x;
+            this.startY = y;
             this.x = x;
             this.y = y;
-            this.direction = "NONE";
+            this.width = width;
+            this.height = height;
+            this.userName = userName;
+            this.lives = lives;
+            this.bulletCount = 0;
+            this.velocityX = 0;
+            this.velocityY = 0;
         }
 
-        public void setDirection(String direction) {
+        void updateDirection(char direction) {
+            if (direction == this.direction) {
+                return;
+            }
             this.direction = direction;
+            updateVelocity();
+            this.x += this.velocityX;
+            this.y += this.velocityY;
         }
 
-        public String getDirection() {
-            return direction;
-        }
-
-        public void move() {
-            switch (direction) {
-                case "UP":
-                    y -= 1;
-                    break;
-                case "DOWN":
-                    y += 1;
-                    break;
-                case "LEFT":
-                    x -= 1;
-                    break;
-                case "RIGHT":
-                    x += 1;
-                    break;
+        void updateVelocity() {
+            if (this.direction == 'U') {
+                this.velocityX = 0;
+                this.velocityY = -tileSize / 8;
+            } else if (this.direction == 'D') {
+                this.velocityX = 0;
+                this.velocityY = tileSize / 8;
+            } else if (this.direction == 'L') {
+                this.velocityX = -tileSize / 8;
+                this.velocityY = 0;
+            } else if (this.direction == 'R') {
+                this.velocityX = tileSize / 8;
+                this.velocityY = 0;
             }
         }
 
-        public int getX() {
-            return x;
-        }
+        void move() {
+            this.x += this.velocityX;
+            this.y += this.velocityY;
 
-        public int getY() {
-            return y;
-        }
-
-        public Point getPosition() {
-            return new Point(x, y);
-        }
-
-        public void setPosition(int x, int y) {
-            this.x = x;
-            this.y = y;
+            if (x % tileSize == 0 && y % tileSize == 0) {
+                this.velocityX = 0;
+                this.velocityY = 0;
+            }
         }
     }
+
+    public static int rowCount = 24;
+    public static int columnCount = 44;
+    public static int tileSize = 32;
+
+    String[] tilemap = {
+            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "XGXXX              X    X            X  XGX",
+            "X X   qq q qq XX X   XX   X X qqqqqq   XX X",
+            "X X q         q  XX XXX X   q X    X q  X X",
+            "X     X X X q   X X RXY X X q   XX   q X  X",
+            "XX  q         q   X XXX X   q q    q q   XX",
+            "X  X  qq q qq X X   XXX   X q X qq X q X  X",
+            "XX X  X           X     X               X X",
+            "XX  X   ggggggX X   g g   X ggggggX X X   X",
+            "X X G X gNNNNNg X  gg gg  X gNNNNNg X G X X",
+            "X   X   gggggg  X gg   gg X gggggg    X   X",
+            "X XX XX              X         X X XXX XX X",
+            "X X     g X g XX ggX G Xgg XgX          X X",
+            "X   X X g X XgXX g   X   g  gX X X XX X   X",
+            "XX X               X   X       X   X    X X",
+            "XX   qqq qqq qqq XXXXXXXXX q q   q   q q  X",
+            "XX q                       q  qq   qq  q  X",
+            "XX qX X qq qqqqqX X XXX XX Xq    X    q   X",
+            "X   q       q     X OXG XX  Xq     X q    X",
+            "X X Xq qq q   q X X XXX X X    q qq    XX X",
+            "X X  X    qX q    X XXX X   XX   qqX X  X X",
+            "XGXX   Xq      XX         X    X       XXGX",
+            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    };
 
     private final Map<Integer, Player> players;
 
@@ -65,18 +103,18 @@ public class GameState {
         players = new HashMap<>();
     }
 
-    public synchronized void addPlayer(int playerId, int x, int y) {
-        players.put(playerId, new Player(x, y));
+    public synchronized void addPlayer(int playerId, int x, int y, int width, int height, String username, int lives) {
+        players.put(playerId, new Player(x, y, width, height, username, lives));
     }
 
     public synchronized void removePlayer(int playerId) {
         players.remove(playerId);
     }
 
-    public synchronized void updatePlayerDirection(int playerId, String direction) {
+    public synchronized void updatePlayerDirection(int playerId, char direction) {
         Player player = players.get(playerId);
         if (player != null) {
-            player.setDirection(direction);
+            player.updateDirection(direction);
         }
     }
 
@@ -94,4 +132,3 @@ public class GameState {
         return players.get(playerId);
     }
 }
-
