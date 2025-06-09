@@ -43,15 +43,15 @@ public class GameState {
         void updateVelocity() {
             if (this.direction == 'U') {
                 this.velocityX = 0;
-                this.velocityY = -tileSize / 8;
+                this.velocityY = -tileSize * 6;
             } else if (this.direction == 'D') {
                 this.velocityX = 0;
-                this.velocityY = tileSize / 8;
+                this.velocityY = tileSize * 6;
             } else if (this.direction == 'L') {
-                this.velocityX = -tileSize / 8;
+                this.velocityX = -tileSize * 6;
                 this.velocityY = 0;
             } else if (this.direction == 'R') {
-                this.velocityX = tileSize / 8;
+                this.velocityX = tileSize * 6;
                 this.velocityY = 0;
             }
         }

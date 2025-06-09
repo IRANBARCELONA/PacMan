@@ -6,9 +6,12 @@ import java.io.IOException;
 import javax.swing.*;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
-
+import Online.GameUser;
+import Online.Database;
 
 public class App {
+    static Database db = new Database();
+    static GameUser user;
     public static JFrame frame;
     private static final int ROW_COUNT = 22;
     private static final int COLUMN_COUNT = 19;
@@ -22,32 +25,41 @@ public class App {
 
 
     public static void main(String[] args) {
-        frame = new JFrame("Pac Man");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(BOARD_WIDTH, BOARD_HEIGHT);
-        frame.setLocationRelativeTo(null);
-        frame.setResizable(false);
 
-        AudioManager.loadSound("menuMusic", "Media/Musics/menuMusic.wav", true);
-        AudioManager.loadSound("gunShot", "Media/Musics/gunShot.wav", false);
-        AudioManager.loadSound("foodEating1", "Media/Musics/foodEating1.wav", false);
-        AudioManager.loadSound("foodEating2", "Media/Musics/foodEating2.wav", false);
-        AudioManager.loadSound("fruitEaten", "Media/Musics/fruitEaten.wav", false);
-        AudioManager.loadSound("ghostEaten", "Media/Musics/ghostEaten.wav", false);
-        AudioManager.loadSound("loadGun", "Media/Musics/loadGun.wav", false);
-        AudioManager.loadSound("normalMove", "Media/Musics/normalMove.wav", true);
-        AudioManager.loadSound("scaryGhostTime", "Media/Musics/scaryGhostTime.wav", true);
-        AudioManager.loadSound("spurtMove1", "Media/Musics/spurtMove1.wav", true);
-        AudioManager.loadSound("spurtMove2", "Media/Musics/spurtMove2.wav", true);
-        AudioManager.loadSound("spurtMove3", "Media/Musics/spurtMove3.wav", true);
-        AudioManager.loadSound("spurtMove4", "Media/Musics/spurtMove4.wav", true);
-        AudioManager.loadSound("deadSnake", "Media/Musics/snakeDead.wav", false);
-        AudioManager.loadSound("ph3", "Media/Musics/ph3Music.wav", false);
 
-        showMainMenu(frame);
+        SwingUtilities.invokeLater(() -> {
+            new LoginPage(() -> {
 
-        frame.setVisible(true);
-        AudioManager.playLooping("menuMusic");
+                frame = new JFrame("Pac Man");
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setSize(BOARD_WIDTH, BOARD_HEIGHT);
+                frame.setLocationRelativeTo(null);
+                frame.setResizable(false);
+
+
+                AudioManager.loadSound("menuMusic", "Media/Musics/menuMusic.wav", true);
+                AudioManager.loadSound("gunShot", "Media/Musics/gunShot.wav", false);
+                AudioManager.loadSound("foodEating1", "Media/Musics/foodEating1.wav", false);
+                AudioManager.loadSound("foodEating2", "Media/Musics/foodEating2.wav", false);
+                AudioManager.loadSound("fruitEaten", "Media/Musics/fruitEaten.wav", false);
+                AudioManager.loadSound("ghostEaten", "Media/Musics/ghostEaten.wav", false);
+                AudioManager.loadSound("loadGun", "Media/Musics/loadGun.wav", false);
+                AudioManager.loadSound("normalMove", "Media/Musics/normalMove.wav", true);
+                AudioManager.loadSound("scaryGhostTime", "Media/Musics/scaryGhostTime.wav", true);
+                AudioManager.loadSound("spurtMove1", "Media/Musics/spurtMove1.wav", true);
+                AudioManager.loadSound("spurtMove2", "Media/Musics/spurtMove2.wav", true);
+                AudioManager.loadSound("spurtMove3", "Media/Musics/spurtMove3.wav", true);
+                AudioManager.loadSound("spurtMove4", "Media/Musics/spurtMove4.wav", true);
+                AudioManager.loadSound("deadSnake", "Media/Musics/snakeDead.wav", false);
+                AudioManager.loadSound("ph3", "Media/Musics/ph3Music.wav", false);
+
+
+                showMainMenu(frame);
+
+                frame.setVisible(true);
+                AudioManager.playLooping("menuMusic");
+            });
+        });
     }
 
     public static void showMainMenu(JFrame frame) {
@@ -62,6 +74,11 @@ public class App {
                     g.setColor(Color.BLACK);
                     g.fillRect(0, 0, getWidth(), getHeight());
                 }
+
+                g.setColor(Color.WHITE);
+                g.setFont(new Font("Playbill", Font.PLAIN, 50));
+                String username = user.getUsername();
+                g.drawString(username, 15 * 32, 2 * 32);
             }
         };
 

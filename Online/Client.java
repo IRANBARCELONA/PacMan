@@ -11,8 +11,10 @@ import java.util.List;
 
 public class Client extends JFrame {
     private Map<Integer, Point> players = new HashMap<>();
-    private Map<Integer, String> playerDirections = new HashMap<>();  // ذخیره جهت هر بازیکن
+    private Map<Integer, String> playerDirections = new HashMap<>();
     private List<Rectangle> walls = new ArrayList<>();
+    private List<Rectangle> walls2 = new ArrayList<>();
+    private List<Rectangle> walls3 = new ArrayList<>();
     private int playerId;
     private PrintWriter out;
 
@@ -45,14 +47,15 @@ public class Client extends JFrame {
     };
 
     private Image wallImage;
-    private Map<String, Image> pacmanImages = new HashMap<>(); // تصاویر پک‌من بر اساس جهت
+    private Image wall2Image;
+    private Image wall3Image;
+    private Map<String, Image> pacmanImages = new HashMap<>();
 
-    private String currentDirection = null;  // جهت فعلی حرکت
+    private String currentDirection = null;
     private Timer moveTimer;
     private Timer renderTimer;
 
     public Client(String serverAddress, int port) throws IOException {
-        // تنظیم اندازه پنجره طبق GameState
         GameState gameState = new GameState();
         int width = gameState.tileSize * gameState.columnCount - 16;
         int height = gameState.tileSize * gameState.rowCount;
@@ -64,8 +67,9 @@ public class Client extends JFrame {
 
         loadWallsFromMap();
 
-        // بارگذاری تصاویر
-        wallImage = new ImageIcon("Media/Images/wall.png").getImage();
+        wall3Image = new ImageIcon("Media/Images/wall.png").getImage();
+        wallImage = new ImageIcon("Media/Images/wallrp.png").getImage();
+        wall2Image = new ImageIcon("Media/Images/wallph3Image.png").getImage();
         pacmanImages.put("UP", new ImageIcon("Media/Images/pacmanUp.png").getImage());
         pacmanImages.put("DOWN", new ImageIcon("Media/Images/pacmanDown.png").getImage());
         pacmanImages.put("LEFT", new ImageIcon("Media/Images/pacmanLeft.png").getImage());
@@ -85,16 +89,28 @@ public class Client extends JFrame {
                     }
                 }
 
+                synchronized (walls2) {
+                    for (Rectangle wall : walls2) {
+                        g.drawImage(wall2Image, wall.x, wall.y, wall.width, wall.height, this);
+                    }
+                }
+
+                synchronized (walls3) {
+                    for (Rectangle wall : walls3) {
+                        g.drawImage(wall3Image, wall.x, wall.y, wall.width, wall.height, this);
+                    }
+                }
+
                 synchronized (players) {
                     for (Map.Entry<Integer, Point> entry : players.entrySet()) {
                         int id = entry.getKey();
                         Point p = entry.getValue();
-                        String dir = playerDirections.getOrDefault(id, "DOWN"); // جهت پیش‌فرض DOWN
+                        String dir = playerDirections.get(id);
+                        System.out.println(dir);
 
-                        int px = p.x * tileSize;
-                        int py = p.y * tileSize;
+
                         Image pacmanImg = pacmanImages.getOrDefault(dir, pacmanImages.get("DOWN"));
-                        g.drawImage(pacmanImg, px, py, tileSize, tileSize, this);
+                        g.drawImage(pacmanImg, p.x, p.y, tileSize, tileSize, this);
                     }
                 }
             }
@@ -102,7 +118,6 @@ public class Client extends JFrame {
 
         add(gamePanel);
 
-        // اتصال به سرور
         Socket socket = new Socket(serverAddress, port);
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
@@ -127,7 +142,6 @@ public class Client extends JFrame {
         });
         receiveThread.start();
 
-        // تایمر ارسال جهت هر 40 میلی‌ثانیه (حرکت پیوسته)
         moveTimer = new Timer(40, e -> {
             if (currentDirection != null) {
                 out.println("DIR:" + currentDirection);
@@ -163,7 +177,6 @@ public class Client extends JFrame {
             }
         });
 
-        // وسط کردن پنجره
         setLocationRelativeTo(null);
         setVisible(true);
     }
@@ -187,7 +200,6 @@ public class Client extends JFrame {
     }
 
     private void updatePlayerDirections(String data) {
-        // داده به صورت id,direction;id,direction;...
         String[] parts = data.split(";");
         synchronized (playerDirections) {
             for (String part : parts) {
@@ -210,6 +222,16 @@ public class Client extends JFrame {
                     int x = c * tileSize;
                     int y = r * tileSize;
                     walls.add(new Rectangle(x, y, tileSize, tileSize));
+                }
+                else if (ch == 'g') {
+                    int x = c * tileSize;
+                    int y = r * tileSize;
+                    walls2.add(new Rectangle(x, y, tileSize, tileSize));
+                }
+                else if (ch == 'q') {
+                    int x = c * tileSize;
+                    int y = r * tileSize;
+                    walls3.add(new Rectangle(x, y, tileSize, tileSize));
                 }
             }
         }

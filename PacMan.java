@@ -39,6 +39,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         int orangesLeft = 2;
         int cherrysLeft = 4;
+        boolean isPacmanAGhost;
 
         boolean setVulnerable = false;
 
@@ -68,6 +69,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             this.bulletTimer = 10000;
             this.gunCoolDown = 0;
             this.gunshoted = false;
+            this.isPacmanAGhost = false;
         }
 
         Block(Image image, int x, int y, int width, int height, boolean setVulnerable, char name) {
@@ -160,6 +162,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
         public void pacmanImage(char direction, boolean gunner){
+            if(pacman.isPacmanAGhost){
+                return;
+            }
+
             if(isPacmanCanMove(pacman, direction) && phase == 1){
                 if (direction == 'U') {
                     pacman.image = pacmanUpImage;
@@ -243,6 +249,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int boardWidth = columnCount * tileSize ;
     private int boardHeight = rowCount * tileSize;
     private int counter = 0;
+    private int beingGhostCounter = 0;
 
     private Image wallImage;
     private Image wallRPImage;
@@ -261,6 +268,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     private Image cherryImage;
     private Image orangeImage;
+    private Image ghostFruitImage;
 
     private Image pacmanUpImage;
     private Image pacmanDownImage;
@@ -307,6 +315,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     boolean foodEatingSound = true;
     boolean mainSound = true;
     int mainMusicCounter = 0;
+
+    int lastScore = App.user.getLastScore();
+    int highScore = App.user.getHighScore();
+
+
 
 
     //X = wall, O = skip, P = pac man, ' ' = food
@@ -414,6 +427,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     ArrayList<PacMan.Block> lightGhosts;
     HashSet<Block> cherrys;
     HashSet<Block> oranges;
+    HashSet<Block> ghostFruits;
     ArrayList<Block> snake;
     ArrayList<Block> snake2;
     ArrayList<Block> guns;
@@ -476,6 +490,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         cherryImage = new ImageIcon("./Media/Images/cherry.png").getImage();
         orangeImage = new ImageIcon("./Media/Images/orange.png").getImage();
+        ghostFruitImage = new ImageIcon("./Media/Images/ghostFruit.png").getImage();
 
         pacmanUpImage = new ImageIcon("./Media/Images/pacmanUp.png").getImage();
         pacmanDownImage = new ImageIcon("./Media/Images/pacmanDown.png").getImage();
@@ -534,6 +549,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         ghosts = new ArrayList<Block>();
         cherrys = new HashSet<Block>();
         oranges = new HashSet<Block>();
+        ghostFruits = new HashSet<>();
         scaredGhosts = new HashSet<Block>();
         lightGhosts = new ArrayList<>();
         guns = new ArrayList<Block>();
@@ -761,15 +777,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        g.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height, null);
-
-        for (Block ghost : ghosts) {
-            g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
-        }
-
-        for (PacMan.Block lightGhost : lightGhosts) {
-            g.drawImage(lightGhost.image, lightGhost.x, lightGhost.y, lightGhost.width, lightGhost.height, null);
-        }
 
         for (Block snake : snake) {
             g.drawImage(snake.image, snake.x, snake.y, snake.width, snake.height, null);
@@ -791,13 +798,27 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             g.drawImage(orange.image, orange.x, orange.y, orange.width, orange.height, null);
         }
 
+        for (Block ghostFruit : ghostFruits) {
+            g.drawImage(ghostFruit.image, ghostFruit.x, ghostFruit.y, ghostFruit.width, ghostFruit.height, null);
+        }
+
         for (Block scaredGhost : scaredGhosts) {
             g.drawImage(scaredGhost.image, scaredGhost.x, scaredGhost.y, scaredGhost.width, scaredGhost.height, null);
+        }
+
+        for (Block ghost : ghosts) {
+            g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
+        }
+
+        for (PacMan.Block lightGhost : lightGhosts) {
+            g.drawImage(lightGhost.image, lightGhost.x, lightGhost.y, lightGhost.width, lightGhost.height, null);
         }
 
         for(Block gun : guns) {
             g.drawImage(gun.image, gun.x, gun.y, gun.width, gun.height,null);
         }
+
+        g.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height, null);
 
 
 
@@ -909,6 +930,60 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    public void ghostFruitSpawner() {
+        if(phase == 4 && !pacman.isPacmanAGhost){
+            if(random.nextInt(50) == 21){
+                int x, y, attempts = 0;
+                do {
+                    x = random.nextInt(columnCount);
+                    y = random.nextInt(rowCount);
+                    attempts++;
+                } while (tileMap3[y].charAt(x) != ' ' && attempts < 100);
+
+                if (attempts < 100) {
+                    Block ghostFruit = new Block(ghostFruitImage, x * tileSize, y * tileSize, tileSize, tileSize, "bullet");
+                    ghostFruits.add(ghostFruit);
+
+                }
+            }
+        }
+    }
+
+    public void lightGhostSpawner() {
+        if(phase == 4){
+            if(random.nextInt(200) == 21){
+                int x, y, attempts = 0;
+                do {
+                    x = random.nextInt(columnCount);
+                    y = random.nextInt(rowCount);
+                    attempts++;
+                } while (tileMap3[y].charAt(x) != ' ' && attempts < 100);
+
+                int imagenum = random.nextInt(4);
+
+                if (attempts < 100) {
+                    if(imagenum == 0){
+                        Block lightghost = new Block(lightGhostRImage, x * tileSize, y * tileSize, tileSize, tileSize, "bullet");
+                        lightGhosts.add(lightghost);
+                    }
+                    else if(imagenum == 1){
+                        Block lightghost = new Block(lightGhostYImage, x * tileSize, y * tileSize, tileSize, tileSize, "bullet");
+                        lightGhosts.add(lightghost);
+                    }
+                    else if(imagenum == 2){
+                        Block lightghost = new Block(lightGhostOImage, x * tileSize, y * tileSize, tileSize, tileSize, "bullet");
+                        lightGhosts.add(lightghost);
+                    }
+                    else if(imagenum == 3){
+                        Block lightghost = new Block(lightGhostGImage, x * tileSize, y * tileSize, tileSize, tileSize, "bullet");
+                        lightGhosts.add(lightghost);
+                    }
+
+                }
+            }
+        }
+    }
+
     private void fruitSpawner() {
         if(foods.size() < 150 && pacman.orangesLeft == 2){
             pacman.orangesLeft = 1;
@@ -990,6 +1065,15 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         else if(pacman.x == tileSize * columnCount){
             pacman.x = 0;
         }
+
+        if(pacman.isPacmanAGhost){
+            beingGhostCounter++;
+        }
+        if(beingGhostCounter == 200){
+            pacman.isPacmanAGhost = false;
+            beingGhostCounter = 0;
+        }
+
     }
 
     private void bulletMove() {
@@ -1087,13 +1171,17 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     AudioManager.playLooping("ph3");
                 }
                 else{
+                    System.out.println("did");
                     snake.clear();
                     snake2.clear();
                     gameLoop.stop();
                     App.win(App.frame , score , phase);
-                    System.out.println("did");
+                    App.user.setLastScore(score);
+                    if(score > App.user.getHighScore()){
+                        App.user.setHighScore(score);
+                    }
+                    App.db.updateGameUserById(App.user);
                     resetGame();
-                    pacman.pacmanImage(pacman.direction, pacman.isGunner);
                 }
             }
             else if (phase == 4){
@@ -1148,7 +1236,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         Block foodEaten = null;
         for (Block food : foods) {
-            if (collision(pacman, food) && phase != 4) {
+            if (collision(pacman, food) && (phase != 4 || pacman.isPacmanAGhost)) {
                 if(foodEatingSound) {
                     AudioManager.play("foodEating1");
                     foodEatingSound = false;
@@ -1654,6 +1742,36 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 score += 800;
             }
 
+            int ghostnum = 0;
+            boolean collision = false;
+            int x = 0, y = 0;
+            char direction = 'U';
+            for(Block ghostFruit : ghostFruits){
+                if (collision(lightGhost, ghostFruit) && lightGhosts.size() > 1) {
+                    pacman.isPacmanAGhost = true;
+                    int numberofghosts = lightGhosts.size();
+                    ghostnum = random.nextInt(numberofghosts);
+                    Block chosenGhost = lightGhosts.get(ghostnum);
+                    x = pacman.x;
+                    y = pacman.y;
+                    direction = pacman.direction;
+                    pacman.x = chosenGhost.x;
+                    pacman.y = chosenGhost.y;
+                    pacman.image = chosenGhost.image;
+                    pacman.direction = chosenGhost.direction;
+                    collision = true;
+                }
+            }
+            if(collision){
+                ghostFruits.clear();
+                lightGhosts.get(ghostnum).x = x;
+                lightGhosts.get(ghostnum).y = y;
+                lightGhosts.get(ghostnum).direction = direction;
+            }
+
+
+
+
             Iterator<PacMan.Block> foodIterator = foods.iterator();
             while (foodIterator.hasNext()) {
                 PacMan.Block food = foodIterator.next();
@@ -1782,8 +1900,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println(pacman.slife + " " + pacman.slife2);
         //changePacmanMusic();
+        System.out.println("High score is : " + highScore + " last score is : " + lastScore);
+        ghostFruitSpawner();
+        lightGhostSpawner();
+
         if(pacman.gunshoted)
             pacman.gunCoolDown++;
         if(pacman.gunCoolDown > 60){
@@ -1793,6 +1914,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         if(phase == 4 && lightGhosts.isEmpty()){
             gameLoop.stop();
             App.win(App.frame , score , phase);
+            App.user.setLastScore(score);
+            if(score > App.user.getHighScore()){
+                App.user.setHighScore(score);
+            }
+            App.db.updateGameUserById(App.user);
             resetGame();
             pacman.pacmanImage(pacman.direction, pacman.isGunner);
         }
@@ -1808,6 +1934,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         if (gameOver) {
             gameLoop.stop();
             App.GameOver(App.frame , score);
+            App.user.setLastScore(score);
+            if(score > App.user.getHighScore()){
+                App.user.setHighScore(score);
+            }
+            App.db.updateGameUserById(App.user);
             resetGame();
         }
     }
@@ -1816,8 +1947,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         score = 0;
         lives = 5;
         phase = 1;
-        snake.getFirst().slife = 2;
-        snake2.getFirst().slife2 = 2;
     }
 
     @Override
