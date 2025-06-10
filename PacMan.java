@@ -316,8 +316,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     boolean mainSound = true;
     int mainMusicCounter = 0;
 
-    int lastScore = App.user.getLastScore();
-    int highScore = App.user.getHighScore();
+    //int lastScore = App.user.getLastScore();
+    //int highScore = App.user.getHighScore();
 
 
 
@@ -437,6 +437,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     ScheduledExecutorService scheduler;
 
     boolean running = true;
+    static boolean running2 = false;
+
+    int res = 0;
 
     char[] directions = {'U', 'U', 'U', 'D', 'L', 'L', 'L', 'R', 'L', 'U'};
     char[] directions1 = {'U', 'U', 'U', 'U', 'R', 'R', 'L', 'D', 'R', 'R'};
@@ -1901,7 +1904,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         //changePacmanMusic();
-        System.out.println("High score is : " + highScore + " last score is : " + lastScore);
+        //System.out.println("High score is : " + highScore + " last score is : " + lastScore);
         ghostFruitSpawner();
         lightGhostSpawner();
 
@@ -1980,8 +1983,34 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         else if(e.getKeyCode() == KeyEvent.VK_E){
             gunShot();
         }
+        else if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+            if(running){
+                gameLoop.stop();
+                running = false;
+                App.showPause(App.frame);
+                res++;
+                if(res == 2){
+                    App.resume2();
+                    res = 0;
+                }
+            }
+            else{
+                resume();
+            }
+        }
+        
+        if(running2){
+            resume();
+            running2 = false;
+            res = 0;
+        }
 
         pacman.pacmanImage(pacman.direction, pacman.isGunner);
+    }
+
+    public void resume(){
+        gameLoop.start();
+        running = true;
     }
 
     @Override

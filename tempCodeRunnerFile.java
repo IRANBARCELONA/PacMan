@@ -1,0 +1,1 @@
+frame.getContentPane().removeAll();

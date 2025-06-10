@@ -1,5 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.Timer;
+import java.util.TimerTask;
 import Online.GameUser;
 import Online.Database;
 
@@ -7,10 +11,11 @@ public class LoginPage extends JFrame {
 
     Database db = new Database();
 
+    private static Image BG;
+    private static int xi = 0;
+
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JButton loginButton;
-    private JButton signUpButton;
 
     public String Username;
     public String Password;
@@ -18,6 +23,8 @@ public class LoginPage extends JFrame {
     public Boolean PassWord = false;
 
     private Runnable onLoginSuccess;
+
+    ScheduledExecutorService imageScheduler;
 
     public LoginPage(Runnable onLoginSuccess) {
         this.onLoginSuccess = onLoginSuccess;
@@ -27,44 +34,104 @@ public class LoginPage extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
-        panel.setBackground(Color.WHITE);
-        GridBagConstraints gbc = new GridBagConstraints();
+        BG = new ImageIcon("Media/Images/firstScene.png").getImage();
 
-        JLabel titleLabel = new JLabel("Login");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(20, 0, 20, 0);
-        panel.add(titleLabel, gbc);
+        JPanel panel;
+        panel = new JPanel() {
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (BG != null) {
+                    g.drawImage(BG, 0, 0, getWidth(), getHeight(), this);
+                } else {
+                    g.setColor(Color.BLACK);
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+            }
+        };
 
-        JLabel usernameLabel = new JLabel("Username:");
-        usernameField = new JTextField(20);
-        gbc.gridy++;
-        panel.add(usernameLabel, gbc);
-        gbc.gridy++;
-        panel.add(usernameField, gbc);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
 
-        JLabel passwordLabel = new JLabel("Password:");
-        passwordField = new JPasswordField(20);
-        gbc.gridy++;
-        panel.add(passwordLabel, gbc);
-        gbc.gridy++;
-        panel.add(passwordField, gbc);
+                BG = new ImageIcon("Media/Images/firstScene2.png").getImage();
+                
+                panel.setLayout(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
 
-        loginButton = new JButton("Login");
-        gbc.gridy++;
-        gbc.insets = new Insets(30, 0, 0, 0);
-        panel.add(loginButton, gbc);
+                JLabel titleLabel = new JLabel("Login");
+                titleLabel.setFont(new Font("Calibri", Font.BOLD, 35));
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                gbc.insets = new Insets(-20, 0, 15, 0);
+                panel.add(titleLabel, gbc);
+                
 
-        signUpButton = new JButton("Sign Up");
-        gbc.gridy++;
-        gbc.insets = new Insets(30, 0, 0, 0);
-        panel.add(signUpButton, gbc);
+                JLabel usernameLabel = new JLabel("Username:");
+                usernameLabel.setFont(new Font("Calibri", Font.BOLD, 15));
+                usernameField = new JTextField(20);
+                usernameField.setFont(new Font("Calibri", Font.PLAIN, 14));
+                usernameField.setBackground(new Color(240, 240, 240));
+                usernameField.setForeground(Color.BLACK);
+                usernameField.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(210, 210, 210), 1), 
+                    BorderFactory.createEmptyBorder(8, 12, 8, 12) 
+                ));
+                gbc.gridy++;
+                gbc.insets = new Insets(35, 0, 10, 0);
+                panel.add(usernameLabel, gbc);
+                gbc.gridy++;
+                gbc.insets = new Insets(10, 0, 15, 0);
+                panel.add(usernameField, gbc);
 
-        signUpButton.addActionListener(e -> signUp());
-        loginButton.addActionListener(e -> Auth());
+                JLabel passwordLabel = new JLabel("Password:");
+                passwordLabel.setFont(new Font("Calibri", Font.BOLD, 15));
+                passwordField = new JPasswordField(20);
+                passwordField.setFont(new Font("Calibri", Font.PLAIN, 14));
+                passwordField.setBackground(new Color(240, 240, 240));
+                passwordField.setForeground(Color.BLACK);
+                passwordField.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(210, 210, 210), 1), 
+                    BorderFactory.createEmptyBorder(8, 12, 8, 12) 
+                ));
+                gbc.gridy++;
+                gbc.insets = new Insets(15, 0, 10, 0);
+                panel.add(passwordLabel, gbc);
+                gbc.gridy++;
+                gbc.insets = new Insets(10, 0, 15, 0);
+                panel.add(passwordField, gbc);
+
+                JButton signUpButton = new JButton("Sign Up");
+                signUpButton.setForeground(Color.BLACK);
+                signUpButton.setFont(new Font("Calibri", Font.BOLD, 16));
+                gbc.gridy++;
+                gbc.insets = new Insets(30, 0, 30, 0);
+                panel.add(signUpButton, gbc);
+
+                JButton loginButton = App.createMenuButton("Login");
+                loginButton.setFont(new Font("Calibri", Font.BOLD, 16));
+                gbc.gridy++;
+                gbc.insets = new Insets(20, 14, -110, 0);
+                panel.add(loginButton, gbc);
+                
+                signUpButton.addActionListener(e -> signUp());
+                loginButton.addActionListener(e -> {
+                    xi = 1;
+                    if( xi == 1 ){
+                        BG = new ImageIcon("Media/Images/firstScene3.png").getImage();
+                        xi = 0;
+                    }
+                    
+                    panel.revalidate();
+                    panel.repaint();
+                    Auth();
+                });
+                
+                panel.revalidate();
+                panel.repaint();
+
+                        }
+                    }, 2000);
         add(panel);
         setVisible(true);
     }
@@ -75,40 +142,52 @@ public class LoginPage extends JFrame {
     }
 
     public void Auth() {
-        this.Username = usernameField.getText();
+        /*this.Username = usernameField.getText();
         this.Password = new String(passwordField.getPassword());
 
         if(this.Username.equals("") || this.Password.equals("")) {
             JOptionPane.showMessageDialog(this, "Error: Empty Fields");
         }
         else{
+*/
 
+            
             App.user = db.getGameUserByUsername(this.Username);
 
-            if(App.user != null) {
+            /*if(App.user != null) {
                 this.UserName = true;
                 String currectPass = App.user.getPassword();
                 if(currectPass.equals(this.Password)) {
                     this.PassWord = true;
                 }
-            }
+            }*/
 
-            if (UserName && PassWord) {
-                dispose();
-                if (onLoginSuccess != null) {
-                    onLoginSuccess.run();
+            PassWord = true;
+            UserName = true;
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    if (UserName && PassWord) {
+                        dispose();
+                        if (onLoginSuccess != null) {
+                            onLoginSuccess.run();        
+                        }
+                    }
                 }
+            }, 2000);
+                /* 
             }
             else if (UserName && !PassWord) {
                 JOptionPane.showMessageDialog(this, "Incorrect Password");
             }
             else {
                 JOptionPane.showMessageDialog(this, "Error: User Not Found");
-            }
+            }*/
 
         }
 
 
     }
 
-}
+
