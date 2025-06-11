@@ -1,17 +1,11 @@
+import Online.Database;
+import Online.GameUser;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.TimerTask;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.Timer;
-
-
+import java.util.TimerTask;
 import javax.swing.*;
-//import javazoom.jl.player.advanced.AdvancedPlayer;
-import Online.GameUser;
-import Online.Database;
 
 public class App {
     static Database db = new Database();
@@ -375,7 +369,7 @@ public class App {
                     frame.revalidate();
                     pacmanGame.requestFocus();
                 }
-            }, 6000);
+            }, 2000);
 
         isInApp = false;
     }
@@ -731,7 +725,7 @@ public class App {
         else if (phase > 3)
             gameOverIcon = new ImageIcon("./Media/Images/WinP3.png");
         else
-            gameOverIcon = new ImageIcon("./Media/Images/Win.png");
+            gameOverIcon = new ImageIcon("./Media/Images/WinP3.png");
 
         Image scaledImage = gameOverIcon.getImage().getScaledInstance(200, 70, Image.SCALE_SMOOTH);
         JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
