@@ -55,7 +55,7 @@ public class LoginPage extends JFrame {
             public void run() {
 
                 BG = new ImageIcon("Media/Images/firstScene2.png").getImage();
-                
+
                 panel.setLayout(new GridBagLayout());
                 GridBagConstraints gbc = new GridBagConstraints();
 
@@ -65,7 +65,7 @@ public class LoginPage extends JFrame {
                 gbc.gridy = 0;
                 gbc.insets = new Insets(-20, 0, 15, 0);
                 panel.add(titleLabel, gbc);
-                
+
 
                 JLabel usernameLabel = new JLabel("Username:");
                 usernameLabel.setFont(new Font("Calibri", Font.BOLD, 15));
@@ -74,8 +74,8 @@ public class LoginPage extends JFrame {
                 usernameField.setBackground(new Color(240, 240, 240));
                 usernameField.setForeground(Color.BLACK);
                 usernameField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(210, 210, 210), 1), 
-                    BorderFactory.createEmptyBorder(8, 12, 8, 12) 
+                        BorderFactory.createLineBorder(new Color(210, 210, 210), 1),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
                 ));
                 gbc.gridy++;
                 gbc.insets = new Insets(35, 0, 10, 0);
@@ -91,8 +91,8 @@ public class LoginPage extends JFrame {
                 passwordField.setBackground(new Color(240, 240, 240));
                 passwordField.setForeground(Color.BLACK);
                 passwordField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(210, 210, 210), 1), 
-                    BorderFactory.createEmptyBorder(8, 12, 8, 12) 
+                        BorderFactory.createLineBorder(new Color(210, 210, 210), 1),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
                 ));
                 gbc.gridy++;
                 gbc.insets = new Insets(15, 0, 10, 0);
@@ -113,25 +113,25 @@ public class LoginPage extends JFrame {
                 gbc.gridy++;
                 gbc.insets = new Insets(20, 14, -110, 0);
                 panel.add(loginButton, gbc);
-                
+
                 signUpButton.addActionListener(e -> signUp());
                 loginButton.addActionListener(e -> {
                     xi = 1;
-                    if( xi == 1 ){
+                    if (xi == 1) {
                         BG = new ImageIcon("Media/Images/firstScene3.png").getImage();
                         xi = 0;
                     }
-                    
+
                     panel.revalidate();
                     panel.repaint();
                     Auth();
                 });
-                
+
                 panel.revalidate();
                 panel.repaint();
 
-                        }
-                    }, 2000);
+            }
+        }, 2000);
         add(panel);
         setVisible(true);
     }
@@ -142,28 +142,24 @@ public class LoginPage extends JFrame {
     }
 
     public void Auth() {
-        /*this.Username = usernameField.getText();
+        this.Username = usernameField.getText();
         this.Password = new String(passwordField.getPassword());
 
-        if(this.Username.equals("") || this.Password.equals("")) {
+        if (this.Username.equals("") || this.Password.equals("")) {
             JOptionPane.showMessageDialog(this, "Error: Empty Fields");
-        }
-        else{
-*/
+        } else {
 
-            
+
             App.user = db.getGameUserByUsername(this.Username);
 
-            /*if(App.user != null) {
+            if (App.user != null) {
                 this.UserName = true;
                 String currectPass = App.user.getPassword();
-                if(currectPass.equals(this.Password)) {
+                if (currectPass.equals(this.Password)) {
                     this.PassWord = true;
                 }
-            }*/
+            }
 
-            PassWord = true;
-            UserName = true;
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
                 @Override
@@ -171,23 +167,23 @@ public class LoginPage extends JFrame {
                     if (UserName && PassWord) {
                         dispose();
                         if (onLoginSuccess != null) {
-                            onLoginSuccess.run();        
+                            onLoginSuccess.run();
                         }
                     }
                 }
             }, 2000);
-                /* 
-            }
-            else if (UserName && !PassWord) {
+
+            if (UserName && !PassWord) {
                 JOptionPane.showMessageDialog(this, "Incorrect Password");
             }
-            else {
+            if (!UserName) {
                 JOptionPane.showMessageDialog(this, "Error: User Not Found");
-            }*/
+            }
 
         }
 
 
     }
+}
 
 

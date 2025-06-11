@@ -50,13 +50,29 @@ public class App {
     
     static float musicVolume = 50;
     static float sfxVolume = 50;
-    
     private static int page = 1;
     private static int menuPage = 10001;
+    private static boolean isInApp = true;
 
 
     public static void main(String[] args) {
 
+
+        AudioManager.loadSound("menuMusic", "Media/Musics/menuMusic.wav", true);
+        AudioManager.loadSound("gunShot", "Media/Musics/gunShot.wav", false);
+        AudioManager.loadSound("foodEating1", "Media/Musics/foodEating1.wav", false);
+        AudioManager.loadSound("foodEating2", "Media/Musics/foodEating2.wav", false);
+        AudioManager.loadSound("fruitEaten", "Media/Musics/fruitEaten.wav", false);
+        AudioManager.loadSound("ghostEaten", "Media/Musics/ghostEaten.wav", false);
+        AudioManager.loadSound("loadGun", "Media/Musics/loadGun.wav", false);
+        AudioManager.loadSound("normalMove", "Media/Musics/normalMove.wav", true);
+        AudioManager.loadSound("scaryGhostTime", "Media/Musics/scaryGhostTime.wav", true);
+        AudioManager.loadSound("spurtMove1", "Media/Musics/spurtMove1.wav", true);
+        AudioManager.loadSound("spurtMove2", "Media/Musics/spurtMove2.wav", true);
+        AudioManager.loadSound("spurtMove3", "Media/Musics/spurtMove3.wav", true);
+        AudioManager.loadSound("spurtMove4", "Media/Musics/spurtMove4.wav", true);
+        AudioManager.loadSound("deadSnake", "Media/Musics/snakeDead.wav", false);
+        AudioManager.loadSound("ph3", "Media/Musics/ph3Music.wav", false);
 
         SwingUtilities.invokeLater(() -> {
             new LoginPage(() -> {
@@ -66,32 +82,15 @@ public class App {
                 frame.setSize(BOARD_WIDTH, BOARD_HEIGHT);
                 frame.setLocationRelativeTo(null);
                 frame.setResizable(false);
-
-
-                AudioManager.loadSound("menuMusic", "Media/Musics/menuMusic.wav", true);
-                AudioManager.loadSound("gunShot", "Media/Musics/gunShot.wav", false);
-                AudioManager.loadSound("foodEating1", "Media/Musics/foodEating1.wav", false);
-                AudioManager.loadSound("foodEating2", "Media/Musics/foodEating2.wav", false);
-                AudioManager.loadSound("fruitEaten", "Media/Musics/fruitEaten.wav", false);
-                AudioManager.loadSound("ghostEaten", "Media/Musics/ghostEaten.wav", false);
-                AudioManager.loadSound("loadGun", "Media/Musics/loadGun.wav", false);
-                AudioManager.loadSound("normalMove", "Media/Musics/normalMove.wav", true);
-                AudioManager.loadSound("scaryGhostTime", "Media/Musics/scaryGhostTime.wav", true);
-                AudioManager.loadSound("spurtMove1", "Media/Musics/spurtMove1.wav", true);
-                AudioManager.loadSound("spurtMove2", "Media/Musics/spurtMove2.wav", true);
-                AudioManager.loadSound("spurtMove3", "Media/Musics/spurtMove3.wav", true);
-                AudioManager.loadSound("spurtMove4", "Media/Musics/spurtMove4.wav", true);
-                AudioManager.loadSound("deadSnake", "Media/Musics/snakeDead.wav", false);
-                AudioManager.loadSound("ph3", "Media/Musics/ph3Music.wav", false);
-
-
                 showMainMenu(frame);
 
                 frame.setVisible(true);
-                AudioManager.playLooping("menuMusic");
+
             });
         });
+
     }
+
     public static void showMainMenu(JFrame frame) {
 
         m1 = new ImageIcon("Media/Images/menuPlay.png").getImage();
@@ -295,10 +294,13 @@ public class App {
         frame.setContentPane(backgroundPanel);
         frame.revalidate();
         frame.repaint();
-    
-        AudioManager.playLooping("menuMusic");
+        if(isInApp){
+            AudioManager.playLooping("menuMusic");
+            isInApp = false;
+        }
         AudioManager.stopLooping("ph3");
     }
+
     static JButton createMenuButton(String text) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -374,8 +376,8 @@ public class App {
                     pacmanGame.requestFocus();
                 }
             }, 6000);
-        
-        
+
+        isInApp = false;
     }
 
     private static void startOnGame(JFrame frame){
@@ -710,6 +712,7 @@ public class App {
         frame.revalidate();
         frame.repaint();
 
+        isInApp = true;
     }
 
     static void win(JFrame frame , int score , int phase) {
@@ -774,6 +777,7 @@ public class App {
         frame.revalidate();
         frame.repaint();
 
+        isInApp = false;
 
     }
 
