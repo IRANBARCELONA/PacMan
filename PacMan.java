@@ -386,7 +386,31 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     //X = wall, O = skip, P = pac man, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
-    private String[] tileMap2 = {
+    private String[] tileMap = {
+            "XXXXXXXXXXXXXXXXXXX",
+            "XNNNNNNNXXNNXXNNNNX",
+            "XNXXXNXNXXXNNNNXXNX",
+            "XNoNXXXNNNXNXNXXXNX",
+            "XNXXXXNNXNNNNNXNXNX",
+            "XNNNNXNXNNXNXXXpXNX",
+            "XXXNXNNNXXXNNNNNNNX",
+            "XNNNNNXNNNNNXNXXXXX",
+            "XNXXXXgggNgggNNNNNX",
+            "NNXNNNgNgNgNgNXXXNM",
+            "XNXNXNggNPgggNNNXNX",
+            "XNNNNNgNgNgNNNXNNNX",
+            "XNXXNXgbgNgNXXXXNXX",
+            "X  X              X",
+            "XNXNXXNXXXNXNXXXNXX",
+            "XNE11111HNNNNNNNNNX",
+            "XNNNNNNNNNNNNNNNNNX",
+            "XNNNNNNNXNrNNXNNNNX",
+            "XXXNXXXNXXXXNXXXXNX",
+            "XNNNNNNNNNNNNNNNNNX",
+            "XXXXXXXXXXXXXXXXXXX"
+    };
+
+    private String[] tileMap5 = {
             "XXXXXXXXXXXXXXXXXXX",
             "X       XX  XX    X",
             "X XXX X XXX    XX X",
@@ -402,7 +426,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "X XX Xgbg g XXXX XX",
             "X  X              X",
             "X X XX XXX X XXX XX",
-            "X              X  X",
+            "XE11111H          X",
             "X XXXXX X XX X X XX",
             "X       X r  X    X",
             "XXX XXX XXXX XXXX X",
@@ -458,7 +482,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "XXXXXXXXXXXXXXXXXXX"
     };
 
-    private String[] tileMap = {
+    private String[] tileMap2 = {
             "XXXXXXXXXXXXXXXXXXX",
             "XXXXXXXXXXXXXXXXXXX",
             "XXXXXXXXXXXXXXXXXXX",
@@ -646,8 +670,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         snaketurnImage4 = new ImageIcon("./Media/Images/snaketrt4.png").getImage();
 
 
-        PacMan.slife = 1;
-        PacMan.slife2 = 1;
+        PacMan.slife = 5;
+        PacMan.slife2 = 5;
 
 
         loadMap();
@@ -1866,7 +1890,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
                 if (previousPositions.size() > 30200) {
-                    int delay = 5000;
+                    int delay = 3000;
                     int posIndex = previousPositions.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions.size()) {
                         Position pos = previousPositions.get(posIndex);
@@ -1999,7 +2023,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
                 if (previousPositions2.size() > 30200) {
-                    int delay = 5000;
+                    int delay = 3000;
                     int posIndex = previousPositions2.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions2.size()) {
                         Position pos = previousPositions2.get(posIndex);

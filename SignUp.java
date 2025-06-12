@@ -88,6 +88,13 @@ public class SignUp extends JFrame {
         panel.add(passwordField, gbc);
 
         signUpButton = new JButton("Sign Up");
+        signUpButton.setBackground(new Color(220, 53, 69));
+        signUpButton.setForeground(Color.WHITE);
+        signUpButton.setFont(new Font("Arial", Font.BOLD, 16));
+        signUpButton.setFocusPainted(false);
+        signUpButton.setContentAreaFilled(true);
+        signUpButton.setForeground(Color.BLACK);
+        signUpButton.setFont(new Font("Calibri", Font.BOLD, 16));
         signUpButton.setForeground(Color.BLACK);
         signUpButton.setFont(new Font("Calibri", Font.BOLD, 16));
         gbc.gridy++;

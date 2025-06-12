@@ -100,7 +100,16 @@ public class LoginPage extends JFrame {
                 panel.add(passwordField, gbc);
 
                 JButton signUpButton = new JButton("Sign Up");
-                signUpButton.setForeground(Color.BLACK);
+
+                signUpButton.setBackground(new Color(173, 216, 230));
+
+                signUpButton.setForeground(Color.BLACK); // متن سیاه
+                signUpButton.setFont(new Font("Arial", Font.BOLD, 16));
+                signUpButton.setFocusPainted(false);
+                signUpButton.setContentAreaFilled(true);
+                signUpButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+                signUpButton.setOpaque(true);
+
                 signUpButton.setFont(new Font("Calibri", Font.BOLD, 16));
                 gbc.gridy++;
                 gbc.insets = new Insets(30, 0, 30, 0);
