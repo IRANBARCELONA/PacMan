@@ -400,12 +400,36 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "XNXNXNggNPgggNNNXNX",
             "XNNNNNgNgNgNNNXNNNX",
             "XNXXNXgbgNgNXXXXNXX",
-            "X  X              X",
+            "XNNX              X",
             "XNXNXXNXXXNXNXXXNXX",
-            "XNE11111HNNNNNNNNNX",
             "XNNNNNNNNNNNNNNNNNX",
+            "XE11111HNNNNNNNNNNX",
             "XNNNNNNNXNrNNXNNNNX",
             "XXXNXXXNXXXXNXXXXNX",
+            "XNNNNNNNNNNNNNNNNNX",
+            "XXXXXXXXXXXXXXXXXXX"
+    };
+
+    private String[] tileMap7 = {
+            "XXXXXXXXXXXXXXXXXXX",
+            "XNNNNNNNXXNNXXNNNNX",
+            "XNXXXNXNXXXNNNNXXNX",
+            "XNoNXXXNNNXNXNXXXNX",
+            "XNXXXXNNXNNNNNXNXNX",
+            "XNNNNXNXNNXNXXXpXNX",
+            "XXXNXNNNXXXNNNNNNNX",
+            "XNNNNNXNNNNNXNXXXXX",
+            "XNXXXXgggNgggNNNNNX",
+            "NNXNNNgNgNgNgNXXXNM",
+            "XNXNXNggNPgggNNNXNX",
+            "XNNNNNgNgNgNNNXNNNX",
+            "XNXXNXgbgNgNXXXXNXX",
+            "XNNNNNNNNNNNNNNNNNX",
+            "XNNNXXXXXXXXXXXXNNX",
+            "XNNNNNNXXXXXXNNNNNX",
+            "XNNNNNNNXXXXNNNNNNX",
+            "XNNNNNNNNXXNNNNNNNX",
+            "XNNNNNNNNNNNNNNNNNX",
             "XNNNNNNNNNNNNNNNNNX",
             "XXXXXXXXXXXXXXXXXXX"
     };
@@ -426,7 +450,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "X XX Xgbg g XXXX XX",
             "X  X              X",
             "X X XX XXX X XXX XX",
-            "XE11111H          X",
+            "X                 X",
             "X XXXXX X XX X X XX",
             "X       X r  X    X",
             "XXX XXX XXXX XXXX X",
@@ -487,7 +511,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "XXXXXXXXXXXXXXXXXXX",
             "XXXXXXX    XXXXXXXX",
             "XXXXX         XXXXX",
-            "XXX              X",
+            "XXX             XXX",
             "X    X X  X XXXpX X",
             "XXX X   XXX       X",
             "X     X     X XXXXX",
@@ -670,8 +694,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         snaketurnImage4 = new ImageIcon("./Media/Images/snaketrt4.png").getImage();
 
 
-        PacMan.slife = 5;
-        PacMan.slife2 = 5;
+        PacMan.slife = 1;
+        PacMan.slife2 = 1;
 
 
         loadMap();
@@ -755,6 +779,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public void loadMap2() {
 
+        walls.clear();
+        resetPositions();
         ArrayList<Integer> removeIndex = new ArrayList<>();
         for(int i = 0; i < walls.size(); i++) {
             Block wall = walls.get(i);
@@ -1141,10 +1167,20 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public void move() {
         PacManMove();
-        if(phase == 1) fruitSpawner();
         checkCollision();
         phaseHandler();
         bulletMove();
+        InfinityGhost();
+        spawner();
+    }
+
+    public void spawner(){
+        if(phase == 1) fruitSpawner();
+        InfinityGhostSpawner();
+        ghostFruitSpawner();
+        lightGhostSpawner();
+        ghostValnrability();
+        bulletSpawner();
     }
 
     public void bulletSpawner() {
@@ -1242,7 +1278,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 firstInfinityGhostSpawn = false;
             }
 
-            int ghostspawnnum = random.nextInt(100);
+            int ghostspawnnum = random.nextInt(600);
             if(ghostspawnnum == 1){
                 int color = random.nextInt(4);
                 switch (color){
@@ -1410,6 +1446,18 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             beingGhostCounter = 0;
         }
 
+        if(PacMan.gunshoted)
+            PacMan.gunCoolDown++;
+
+        if(PacMan.gunCoolDown > 60){
+            PacMan.gunCoolDown = 0;
+            PacMan.gunshoted = false;
+        }
+        if(PacMan.nextDirection != PacMan.direction){
+            PacMan.updateDirection(PacMan.nextDirection);
+            PacMan.PacManImage(PacMan.nextDirection, PacMan.isGunner);
+        }
+
     }
 
     private void bulletMove() {
@@ -1502,6 +1550,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 loadMap2();
             }
             else if (phase == 3) {
+                resetPositions();
                 this.setBackground(new Color(0,0,0,200));
                 guns.clear();
                 imageScheduler = Executors.newScheduledThreadPool(1);
@@ -1513,6 +1562,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     imagePh++;
                 }, 0, 5, TimeUnit.SECONDS);
                 if(snake.isEmpty() && snake2.isEmpty()) {
+                    guns.clear();
                     imageSpawnerDelay = System.currentTimeMillis();
                     PacMan.PacManImage(PacMan.direction, PacMan.isGunner);
                     PacMan.isGunner = false;
@@ -1522,6 +1572,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     snake.clear();
                     snake2.clear();
                     gameLoop.stop();
+                    guns.clear();
                     App.win(App.frame , score , phase);
                     App.user.setLastScore(score);
                     if(score > App.user.getHighScore()){
@@ -1538,6 +1589,22 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             else if (phase == 6){
                 loadMapW();
                 AudioManager.stopLooping("ph3");
+            }
+
+            if(portalHealth == 76){
+                phase5StartTime = 0;
+                portalHealth = 75;
+                shakeWindow(App.frame, 15000, 10);
+            }
+            else if(portalHealth == 51){
+                phase5StartTime = 0;
+                portalHealth = 50;
+                shakeWindow(App.frame, 15000, 10);
+            }
+            else if(portalHealth == 26){
+                phase5StartTime = 0;
+                portalHealth = 25;
+                shakeWindow(App.frame, 15000, 10);
             }
         }
 
@@ -1594,6 +1661,53 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             walls.removeAll(toRemove);
         }
 
+        if(winpicture && winpictureDelay == 0){
+            winpicture = false;
+            winpictureDelay = System.currentTimeMillis();
+        }
+        else if(System.currentTimeMillis() - winpictureDelay > 3000 && winpictureDelay > 1){
+            winpicture = true;
+            winpictureDelay = 1;
+        }
+        else if(winpicture && winpictureDelay == 1){
+            gameLoop.stop();
+            App.win(App.frame , score , phase);
+            resetGame();
+        }
+
+
+        if(phase == 5 && portalHealth <= 0){
+            InfinityGhosts.clear();
+            AudioManager.stopLooping("ph3");
+
+            /*App.user.setLastScore(score);
+            if(score > App.user.getHighScore()){
+                App.user.setHighScore(score);
+            }
+            App.db.updateGameUserById(App.user);*/
+            if(!phasechanger) {
+                phase5to6 = System.currentTimeMillis();
+                phasechanger = true;
+                AudioManager.play("explosion");
+            }
+
+            if(System.currentTimeMillis() - phase5to6 >= 3000) {
+                resetPositions();
+                phase++;
+                AudioManager.playLooping("winsong");
+            }
+        }
+
+        if(phase == 5){
+            Block bulletdestroy = null;
+            for(Block gun : guns){
+                if(collision(gun, InfinityPortal) && gun.sname == "b"){
+                    portalHealth -= 6;
+                    bulletdestroy = gun;
+                }
+            }
+            guns.remove(bulletdestroy);
+        }
     }
 
     public boolean collision(Block a, Block b) {
@@ -1788,7 +1902,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     }
 
-    public void snake(){
+    public void snake() {
         ArrayList<Block> snakes = (ArrayList<Block>) snake.clone();
         Collections.reverse(snakes);
         ArrayList<Block> snakes2 = (ArrayList<Block>) snake2.clone();
@@ -1919,11 +2033,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         }
 
-        if(snake.size() > 0 && snake.get(0).slife <= 0){
+        if (snake.size() > 0 && snake.get(0).slife <= 0) {
             destroySnake();
         }
 
-        if(snake2.size() > 0 && snake2.get(0).slife2 <= 0){
+        if (snake2.size() > 0 && snake2.get(0).slife2 <= 0) {
             destroySnake2();
         }
 
@@ -2023,7 +2137,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
                 if (previousPositions2.size() > 30200) {
-                    int delay = 3000;
+                    int delay = 5000;
                     int posIndex = previousPositions2.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions2.size()) {
                         Position pos = previousPositions2.get(posIndex);
@@ -2051,11 +2165,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
 
         }
-
-
-
-
     }
+
 
     public void destroySnake(){
         AudioManager.play("deadSnake");
@@ -2438,76 +2549,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        InfinityGhost();
-        InfinityGhostSpawner();
-
-
-        if(winpicture && winpictureDelay == 0){
-            winpicture = false;
-            winpictureDelay = System.currentTimeMillis();
-        }
-        else if(System.currentTimeMillis() - winpictureDelay > 3000 && winpictureDelay > 1){
-            winpicture = true;
-            winpictureDelay = 1;
-        }
-        else if(winpicture && winpictureDelay == 1){
-            gameLoop.stop();
-            App.win(App.frame , score , phase);
-            resetGame();
-        }
-
-
-        if(phase == 5 && portalHealth <= 0){
-            InfinityGhosts.clear();
-            AudioManager.stopLooping("ph3");
-
-            /*App.user.setLastScore(score);
-            if(score > App.user.getHighScore()){
-                App.user.setHighScore(score);
-            }
-            App.db.updateGameUserById(App.user);*/
-            if(!phasechanger) {
-                phase5to6 = System.currentTimeMillis();
-                phasechanger = true;
-                AudioManager.play("explosion");
-            }
-
-            if(System.currentTimeMillis() - phase5to6 >= 3000) {
-                resetPositions();
-                phase++;
-                AudioManager.playLooping("winsong");
-            }
-        }
-
-        if(phase == 5){
-            Block bulletdestroy = null;
-            for(Block gun : guns){
-                if(collision(gun, InfinityPortal) && gun.sname == "b"){
-                    portalHealth -= 25;
-                    bulletdestroy = gun;
-                }
-            }
-            guns.remove(bulletdestroy);
-        }
-
 
         //changePacManMusic();
-        ghostFruitSpawner();
-        lightGhostSpawner();
-
-        if(PacMan.gunshoted)
-            PacMan.gunCoolDown++;
-        if(PacMan.gunCoolDown > 60){
-            PacMan.gunCoolDown = 0;
-            PacMan.gunshoted = false;
-        }
-        if(PacMan.nextDirection != PacMan.direction){
-            PacMan.updateDirection(PacMan.nextDirection);
-            PacMan.PacManImage(PacMan.nextDirection, PacMan.isGunner);
-        }
         move();
-        ghostValnrability();
-        bulletSpawner();
         repaint();
         if (gameOver) {
             gameLoop.stop();
