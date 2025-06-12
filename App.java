@@ -3,12 +3,8 @@ import Online.GameUser;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class App {
@@ -33,6 +29,15 @@ public class App {
     private static Image p7;
     private static Image p8;
     private static Image p9;
+    private static Image p10;
+    private static Image p11;
+    private static Image p12;
+    private static Image p13;
+    private static Image p14;
+    private static Image p15;
+    private static Image p16;
+    private static Image p17;
+    private static Image p18;
     private static Image pI;
 
     private static Image m1;
@@ -538,6 +543,15 @@ public class App {
         p7 = new ImageIcon("Media/Images/aboutPn.png").getImage();
         p8 = new ImageIcon("Media/Images/aboutP4.png").getImage();
         p9 = new ImageIcon("Media/Images/aboutPn.png").getImage();
+        p10 = new ImageIcon("Media/Images/aboutP5.png").getImage();
+        p11 = new ImageIcon("Media/Images/aboutPn.png").getImage();
+        p12 = new ImageIcon("Media/Images/aboutP6.png").getImage();
+        p13 = new ImageIcon("Media/Images/aboutPn.png").getImage();
+        p14 = new ImageIcon("Media/Images/aboutP7.png").getImage();
+        p15 = new ImageIcon("Media/Images/aboutPn.png").getImage();
+        p16 = new ImageIcon("Media/Images/aboutP8.png").getImage();
+        p17 = new ImageIcon("Media/Images/aboutPn.png").getImage();
+        p18 = new ImageIcon("Media/Images/aboutP9.png").getImage();
         JPanel backgroundPanel;
         
         JPanel menuPanel = new JPanel();
@@ -570,7 +584,7 @@ public class App {
             page = 1;
         });
 
-        if(page >= 2 && page <= 5){
+        if(page >= 2 && page <= 18){
             switch(page){
                 case 2:
                     pI = p2;
@@ -593,8 +607,35 @@ public class App {
                 case 8:
                     pI = p8;
                     break;
-                default:
+                case 9:
                     pI = p9;
+                    break;
+                case 10:
+                    pI = p10;
+                    break;
+                case 11:
+                    pI = p11;
+                    break;
+                case 12:
+                    pI = p12;
+                    break;
+                case 13:
+                    pI = p13;
+                    break;
+                case 14:
+                    pI = p14;
+                    break;
+                case 15:
+                    pI = p15;
+                    break;
+                case 16:
+                    pI = p16;
+                    break;
+                case 17:
+                    pI = p17;
+                    break;
+                default:
+                    pI = p18;
             }
             backgroundPanel = new JPanel() {
                 protected void paintComponent(Graphics g) {
@@ -644,8 +685,8 @@ public class App {
             backgroundPanel = new JPanel() {
                 protected void paintComponent(Graphics g) {
                     super.paintComponent(g);
-                    if (p6 != null) {
-                        g.drawImage(p6, 0, 0, getWidth(), getHeight(), this);
+                    if (p1 != null) {
+                        g.drawImage(p1, 0, 0, getWidth(), getHeight(), this);
                     } else {
                         g.setColor(Color.BLACK);
                         g.fillRect(0, 0, getWidth(), getHeight());
