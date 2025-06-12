@@ -9,7 +9,7 @@ public class AudioManager {
     private static Map<String, Clip> sounds = new HashMap<>();
     private static Map<String, Boolean> isMusicMap = new HashMap<>();
 
-    private static float musicVolume = 0.7f;
+    private static float musicVolume = 0.5f;
     private static float sfxVolume = 0.5f;
 
     public static void loadSound(String name, String filePath, boolean isMusic) {

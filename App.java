@@ -3,8 +3,12 @@ import Online.GameUser;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class App {
@@ -66,7 +70,18 @@ public class App {
         AudioManager.loadSound("spurtMove3", "Media/Musics/spurtMove3.wav", true);
         AudioManager.loadSound("spurtMove4", "Media/Musics/spurtMove4.wav", true);
         AudioManager.loadSound("deadSnake", "Media/Musics/snakeDead.wav", false);
-        AudioManager.loadSound("ph3", "Media/Musics/ph3Music.wav", false);
+        AudioManager.loadSound("earthquick", "Media/Musics/earthquick.wav", false);
+        AudioManager.loadSound("armor", "Media/Musics/armor.wav", false);
+        AudioManager.loadSound("explosion", "Media/Musics/explosion.wav", false);
+        AudioManager.loadSound("portalspawn", "Media/Musics/portalspawn.wav", false);
+        AudioManager.loadSound("ghostspawn", "Media/Musics/ghostspawn.wav", false);
+        AudioManager.loadSound("winsong", "Media/Musics/winsong.wav", true);
+        AudioManager.loadSound("deafeat", "Media/Musics/deafeat.wav", true);
+        AudioManager.loadSound("deafeated", "Media/Musics/deafeated.wav", true);
+        AudioManager.loadSound("ph3", "Media/Musics/ph3MUsic.wav", true);
+
+
+
 
         SwingUtilities.invokeLater(() -> {
             new LoginPage(() -> {
@@ -104,7 +119,7 @@ public class App {
 
         JButton playButton = createMenuButton("Play");
         playButton.setFont(new Font("Courier New",Font.BOLD,20));
-        JButton playOnButton = createMenuButton("Play Multiplayer (Soon)");
+        JButton playOnButton = createMenuButton("Play Multiplayer\n(Soon)");
         playOnButton.setFont(new Font("Courier New",Font.BOLD,15));
         JButton optionsButton = createMenuButton("Options");
         optionsButton.setFont(new Font("Courier New",Font.BOLD,25));
@@ -293,6 +308,7 @@ public class App {
             isInApp = false;
         }
         AudioManager.stopLooping("ph3");
+        AudioManager.stopLooping("winsong");
     }
 
     static JButton createMenuButton(String text) {
@@ -713,6 +729,8 @@ public class App {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 
+
+
         JPanel gameOverPanel = new JPanel();
         gameOverPanel.setBackground(Color.BLACK);
         gameOverPanel.setLayout(new BoxLayout(gameOverPanel, BoxLayout.Y_AXIS));
@@ -726,6 +744,7 @@ public class App {
             gameOverIcon = new ImageIcon("./Media/Images/WinP3.png");
         else
             gameOverIcon = new ImageIcon("./Media/Images/WinP3.png");
+
 
         Image scaledImage = gameOverIcon.getImage().getScaledInstance(200, 70, Image.SCALE_SMOOTH);
         JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
@@ -771,7 +790,7 @@ public class App {
         frame.revalidate();
         frame.repaint();
 
-        isInApp = false;
+        isInApp = true;
 
     }
 
