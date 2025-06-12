@@ -1,14 +1,14 @@
 # **Pacman Edition**
 ## Contributors:
 
-### Reza Salmani
+### Reza Salmanian
 ### MohammadParsa Khorammanesh
 
 ## Introduction
 Welcome to our unique edition of Pacman! This isn't just the classic Pacman you know — we've reinvented it with a fresh new look, multiple challenging levels, and exciting online modes. Whether you're a Pacman veteran or a new player, this game promises to keep you entertained for hours.
 
 ## Features
-Ofline Levels: Progress through several distinct phases, each with unique layouts and increasing difficulty.
+Offline Levels: Progress through several distinct phases, each with unique layouts and increasing difficulty.
 
 Multiplayer : You can hava fun with your friends in our unique multiplayer modes
 
@@ -48,7 +48,7 @@ We welcome contributions from the community! If you'd like to suggest features, 
 ## Contact
 For questions or support, reach out to:
 
-Reza Salmani (---)
+Reza Salmanian (www.reza5567880@gmail.com)
 
 MohammadParsa Khorammanesh (parsakhorram85@gmail.com)
 
