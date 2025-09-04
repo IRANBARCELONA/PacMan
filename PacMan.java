@@ -508,9 +508,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     private String[] tileMap2 = {
             "XXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXXXXXX",
             "XXXXXXX    XXXXXXXX",
-            "XXXXX         XXXXX",
+            "XXXXX        XXXXXX",
+            "XXX             XXX",
             "XXX             XXX",
             "X    X X  X XXXpX X",
             "XXX X   XXX       X",
@@ -523,10 +523,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "X  X              X",
             "X X XX XXX X XXX XX",
             "XE11111H          X",
+            "X                XX",
             "XXX             XXX",
             "XXXXX         XXXXX",
             "XXXXXXX     XXXXXXX",
-            "XXXXXXXXXXXXXXXXXXX",
             "XXXXXXXXXXXXXXXXXXX"
     };
 
@@ -801,7 +801,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
-                String row = tileMap[r];
+                String row = tileMap2[r];
                 char tileMapChar = row.charAt(c);
 
                 int x = c*tileSize;
