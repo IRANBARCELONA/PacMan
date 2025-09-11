@@ -3,6 +3,7 @@ package Online;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.*;
 import java.net.*;
@@ -10,11 +11,14 @@ import java.util.*;
 import java.util.List;
 
 public class Client extends JFrame {
-    private Map<Integer, Point> players = new HashMap<>();
+    private Map<Integer, GameState.Player> players = new HashMap<>();
     private Map<Integer, String> playerDirections = new HashMap<>();
     private List<Rectangle> walls = new ArrayList<>();
     private List<Rectangle> walls2 = new ArrayList<>();
     private List<Rectangle> walls3 = new ArrayList<>();
+    private List<Rectangle> guns = new ArrayList<>();
+    private List<Rectangle> bullets = new ArrayList<>();
+    private List<GameState.Bullet> shootingBullets = new ArrayList<>();
     private int playerId;
     private PrintWriter out;
 
@@ -22,7 +26,7 @@ public class Client extends JFrame {
 
     private final String[] tileMap = {
             "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-            "XGXXX              X    X            X  XGX",
+            "X XXX              X    X            X  XGX",
             "X X   qq q qq XX X   XX   X X qqqqqq   XX X",
             "X X q         q  XX XXX X   q X    X q  X X",
             "X     X X X q   X X RXY X X q   XX   q X  X",
@@ -49,14 +53,21 @@ public class Client extends JFrame {
     private Image wallImage;
     private Image wall2Image;
     private Image wall3Image;
+    private Image gunImage;
+    private Image bulletUImage;
+    private Image bulletDImage;
+    private Image bulletRImage;
+    private Image bulletLImage;
     private Map<String, Image> pacmanImages = new HashMap<>();
 
     private String currentDirection = null;
     private Timer moveTimer;
     private Timer renderTimer;
 
+    GameState gameState;
+
     public Client(String serverAddress, int port) throws IOException {
-        GameState gameState = new GameState();
+        gameState = new GameState();
         int width = gameState.tileSize * gameState.columnCount - 16;
         int height = gameState.tileSize * gameState.rowCount;
 
@@ -70,14 +81,22 @@ public class Client extends JFrame {
         wall3Image = new ImageIcon("Media/Images/wall.png").getImage();
         wallImage = new ImageIcon("Media/Images/wallrp.png").getImage();
         wall2Image = new ImageIcon("Media/Images/wallph3Image.png").getImage();
-        pacmanImages.put("UP", new ImageIcon("Media/Images/pacmanUp.png").getImage());
-        pacmanImages.put("DOWN", new ImageIcon("Media/Images/pacmanDown.png").getImage());
-        pacmanImages.put("LEFT", new ImageIcon("Media/Images/pacmanLeft.png").getImage());
-        pacmanImages.put("RIGHT", new ImageIcon("Media/Images/pacmanRight.png").getImage());
+        gunImage = new ImageIcon("Media/Images/gun.png").getImage();
+        bulletUImage = new ImageIcon("Media/Images/bulletU.png").getImage();
+        bulletDImage = new ImageIcon("Media/Images/bulletd.png").getImage();
+        bulletRImage = new ImageIcon("Media/Images/bulletr.png").getImage();
+        bulletLImage = new ImageIcon("Media/Images/bulletl.png").getImage();
+        pacmanImages.put("U", new ImageIcon("Media/Images/pacmanUP.png").getImage());
+        pacmanImages.put("D", new ImageIcon("Media/Images/pacmanDown.png").getImage());
+        pacmanImages.put("L", new ImageIcon("Media/Images/pacmanLeft.png").getImage());
+        pacmanImages.put("R", new ImageIcon("Media/Images/pacmanRight.png").getImage());
 
         JPanel gamePanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
+                gunSpawner();
+                bulletSpawner();
+                checkCollisions();
                 super.paintComponent(g);
 
                 g.setColor(Color.BLACK);
@@ -101,15 +120,58 @@ public class Client extends JFrame {
                     }
                 }
 
+                synchronized (guns) {
+                    for (Rectangle gun : guns) {
+                        g.drawImage(gunImage, gun.x + 6, gun.y + 6, 20, 20, this);
+                    }
+                }
+
+                synchronized (bullets) {
+                    if(!bullets.isEmpty()){
+                        for (Rectangle bullet : bullets) {
+                            g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 20, this);
+                        }
+                    }
+
+                }
+
+                synchronized (shootingBullets) {
+                    if(!shootingBullets.isEmpty()){
+                        for (GameState.Bullet bullet : shootingBullets) {
+                            if(bullet.direction == 'U')
+                                g.drawImage(bullet.image, bullet.x + 8, bullet.y - 12, 16, 16, this);
+                            if(bullet.direction == 'D')
+                                g.drawImage(bullet.image, bullet.x + 8, bullet.y + 20, 16, 16, this);
+                            if(bullet.direction == 'R')
+                                g.drawImage(bullet.image, bullet.x + 20, bullet.y + 8, 16, 16, this);
+                            if(bullet.direction == 'L')
+                                g.drawImage(bullet.image, bullet.x - 12, bullet.y + 8, 16, 16, this);
+
+
+                        }
+                    }
+                }
+
                 synchronized (players) {
-                    for (Map.Entry<Integer, Point> entry : players.entrySet()) {
+                    for (Map.Entry<Integer, GameState.Player> entry : players.entrySet()) {
                         int id = entry.getKey();
-                        Point p = entry.getValue();
-                        String dir = playerDirections.get(id);
-                        System.out.println(dir);
-
-
-                        Image pacmanImg = pacmanImages.getOrDefault(dir, pacmanImages.get("DOWN"));
+                        GameState.Player p = entry.getValue();
+                        String dir = playerDirections.getOrDefault(id, "D");
+                        switch (dir){
+                            case "U":
+                                dir = "U";
+                                break;
+                            case "D":
+                                dir = "D";
+                                break;
+                            case "L":
+                                dir = "L";
+                                break;
+                            case "R":
+                                dir = "R";
+                                break;
+                        }
+                        Image pacmanImg = pacmanImages.getOrDefault(dir, pacmanImages.get("D"));
                         g.drawImage(pacmanImg, p.x, p.y, tileSize, tileSize, this);
                     }
                 }
@@ -130,11 +192,14 @@ public class Client extends JFrame {
                 String line;
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith("STATE:")) {
-                        updatePlayers(line.substring(6));
+                        UpdatePlayers(line.substring(6));
                         SwingUtilities.invokeLater(gamePanel::repaint);
                     } else if (line.startsWith("DIRS:")) {
-                        updatePlayerDirections(line.substring(5));
+                        UpdatePlayerDirections(line.substring(5));
+                    } else if (line.startsWith("ShootingBullets:")) {
+                        UpdateShootingBullets(line.substring(16));
                     }
+                    
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -142,7 +207,7 @@ public class Client extends JFrame {
         });
         receiveThread.start();
 
-        moveTimer = new Timer(40, e -> {
+        moveTimer = new Timer(25, e -> {
             if (currentDirection != null) {
                 out.println("DIR:" + currentDirection);
             }
@@ -157,21 +222,31 @@ public class Client extends JFrame {
 
         gamePanel.setFocusable(true);
         gamePanel.requestFocusInWindow();
-        gamePanel.addKeyListener(new java.awt.event.KeyAdapter() {
+        gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_UP:
-                        currentDirection = "UP";
+                        currentDirection = "U";
+                        playerDirections.put(playerId, "U");
                         break;
                     case KeyEvent.VK_DOWN:
-                        currentDirection = "DOWN";
+                        currentDirection = "D";
+                        playerDirections.put(playerId, "D");
                         break;
                     case KeyEvent.VK_LEFT:
-                        currentDirection = "LEFT";
+                        currentDirection = "L";
+                        playerDirections.put(playerId, "L");
                         break;
                     case KeyEvent.VK_RIGHT:
-                        currentDirection = "RIGHT";
+                        currentDirection = "R";
+                        playerDirections.put(playerId, "R");
+                        break;
+                    case KeyEvent.VK_E:
+                        shootBullet();
+                        break;
+                    case KeyEvent.VK_Q:
+                        shootScifi();
                         break;
                 }
             }
@@ -181,8 +256,8 @@ public class Client extends JFrame {
         setVisible(true);
     }
 
-    private void updatePlayers(String data) {
-        Map<Integer, Point> newPlayers = new HashMap<>();
+    private void UpdatePlayers(String data) {
+        Map<Integer, GameState.Player> newPlayers = new HashMap<>();
         String[] parts = data.split(";");
         for (String part : parts) {
             if (part.isEmpty())
@@ -191,7 +266,16 @@ public class Client extends JFrame {
             int id = Integer.parseInt(p[0]);
             int x = Integer.parseInt(p[1]);
             int y = Integer.parseInt(p[2]);
-            newPlayers.put(id, new Point(x, y));
+            int bulletCount = Integer.parseInt(p[3]);
+            int scifiBulletCount = Integer.parseInt(p[4]);
+            boolean haveGun = Boolean.parseBoolean(p[5]);
+            boolean haveSwoard = Boolean.parseBoolean(p[6]);
+            GameState.Player player = gameState.new Player(x, y , tileSize, tileSize, "Player", 3);
+            player.bulletCount = bulletCount;
+            player.scifiBulletCount = scifiBulletCount;
+            player.haveGun = haveGun;
+            player.haveSwoard = haveSwoard;
+            newPlayers.put(id, player);
         }
         synchronized (players) {
             players.clear();
@@ -199,7 +283,55 @@ public class Client extends JFrame {
         }
     }
 
-    private void updatePlayerDirections(String data) {
+    private void UpdateShootingBullets(String data) {
+        List<GameState.Bullet> newShootingBullets = new ArrayList<>();
+        String[] parts = data.split(";");
+        for (String part : parts) {
+            if (part.isEmpty())
+                continue;
+            String[] p = part.split(",");
+            int id = Integer.parseInt(p[0]);
+            int x = Integer.parseInt(p[1]);
+            int y = Integer.parseInt(p[2]);
+            char direction = p[3].charAt(0);
+            int kind = Integer.parseInt(p[4]);
+
+            int vx = 0, vy = 0;
+            Image image = null;
+
+            if (kind == 1) {
+                // مثلا تیر خاص؟
+            } else {
+                switch (direction) {
+                    case 'U':
+                        image = bulletUImage;
+                        vy = -8;
+                        break;
+                    case 'D':
+                        image = bulletDImage;
+                        vy = 8;
+                        break;
+                    case 'L':
+                        vx = -8;
+                        image = bulletLImage;
+                        break;
+                    case 'R':
+                        vx = 8;
+                        image = bulletRImage;
+                        break;
+                }
+            }
+            GameState.Bullet bullet = gameState.new Bullet(id, x, y, vx, vy, direction, image);
+            newShootingBullets.add(bullet);
+        }
+
+        synchronized (shootingBullets) {
+            shootingBullets.clear();
+            shootingBullets.addAll(newShootingBullets);
+        }
+    }
+
+    private void UpdatePlayerDirections(String data) {
         String[] parts = data.split(";");
         synchronized (playerDirections) {
             for (String part : parts) {
@@ -235,6 +367,71 @@ public class Client extends JFrame {
                 }
             }
         }
+    }
+
+    private void gunSpawner(){
+        Random rand = new Random();
+        int gunSpawner = rand.nextInt(400);
+        if(gunSpawner == 7){
+            int x;
+            int y;
+            do{
+            x = rand.nextInt(43);
+            y = rand.nextInt(24);
+            } while(tileMap[y].charAt(x) != ' ');
+
+            guns.add(new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize));
+        }
+    }
+
+    private void bulletSpawner(){
+        Random rand = new Random();
+        int gunSpawner = rand.nextInt(100);
+        if(gunSpawner == 21){
+            int x;
+            int y;
+            do{
+                x = rand.nextInt(44);
+                y = rand.nextInt(24);
+            } while(tileMap[y].charAt(x) != ' ');
+
+            bullets.add(new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize));
+        }
+    }
+
+    private void shootBullet(){
+        GameState.Player player = players.get(playerId);
+        if(player.haveGun && player.bulletCount > 0){
+            out.println("ShootBullet:" + playerId + "," + player.x + "," + player.y + "," + playerDirections.get(playerId));
+        }
+
+    }
+
+    private void shootScifi(){
+        return;
+    }
+
+    private void checkCollisions(){
+        GameState.Player player = players.get(playerId);
+        List<Rectangle> removeBullets = new ArrayList<>();
+        for(Rectangle bullet : bullets){
+            if(gameState.collision(new Rectangle(player.x, player.y, tileSize, tileSize), bullet)){
+                out.println("Bullet:" + playerId + "," + 1 + "," + 0);
+                removeBullets.add(bullet);
+            }
+        }
+        bullets.removeAll(removeBullets);
+
+        List<Rectangle> removeGuns = new ArrayList<>();
+        for(Rectangle gun : guns){
+            if(gameState.collision(new Rectangle(player.x, player.y, tileSize, tileSize), gun)){
+                out.println("Weapon:" + playerId + "," + 1 + "," + 0);
+                player.haveGun = true;
+                removeGuns.add(gun);
+            }
+        }
+        guns.removeAll(removeGuns);
+
     }
 
     public static void main(String[] args) throws IOException {
