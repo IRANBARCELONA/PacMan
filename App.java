@@ -19,7 +19,7 @@ public class App {
     private static PacMan pacmanGame;
 
 
-    
+    private static Image character;
     private static Image p1;
     private static Image p2;
     private static Image p3;
@@ -124,7 +124,7 @@ public class App {
 
         JButton playButton = createMenuButton("Play");
         playButton.setFont(new Font("Courier New",Font.BOLD,20));
-        JButton playOnButton = createMenuButton("Play Multiplayer\n(Soon)");
+        JButton playOnButton = createMenuButton("Play Multiplayer     ");
         playOnButton.setFont(new Font("Courier New",Font.BOLD,15));
         JButton optionsButton = createMenuButton("Options");
         optionsButton.setFont(new Font("Courier New",Font.BOLD,25));
@@ -396,6 +396,83 @@ public class App {
     }
 
     private static void startOnGame(JFrame frame){
+        character = new ImageIcon("Media/Images/character.png").getImage();
+        
+        JPanel backgroundPanel;
+        
+        JPanel menuPanel = new JPanel();
+        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
+        menuPanel.setOpaque(false);
+
+        JPanel bottomRightWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 10));
+        bottomRightWrapper.setOpaque(false);
+        bottomRightWrapper.add(menuPanel);
+
+        JLabel characterLabel = new JLabel("Select your character");
+        characterLabel.setForeground(Color.YELLOW);
+        characterLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        characterLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        JButton pacmanButton = createMenuButton(">>>");
+        pacmanButton.setForeground(Color.yellow);
+        JButton leonardoButton = createMenuButton(">>>");
+        leonardoButton.setForeground(Color.GREEN);
+        JButton deadpoolButton = createMenuButton(">>>");
+        deadpoolButton.setForeground(Color.RED);
+        JButton gholamButton = createMenuButton(">>>");
+        gholamButton.setForeground(Color.BLACK);
+        JButton backButton = createMenuButton("Back");
+        backButton.setForeground(Color.BLACK);
+
+        pacmanButton.addActionListener(e -> {
+            
+        });
+        leonardoButton.addActionListener(e -> {
+            
+        });
+        deadpoolButton.addActionListener(e -> {
+            
+        });
+        gholamButton.addActionListener(e -> {
+            
+        });
+        backButton.addActionListener(e -> {
+            showMainMenu(frame);
+        });
+
+        
+        backgroundPanel = new JPanel() {
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (character != null) {
+                    g.drawImage(character, 0, 0, getWidth(), getHeight(), this);
+                } else {
+                    g.setColor(Color.BLACK);
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+            }
+        };
+    
+        backgroundPanel.setLayout(new BorderLayout());
+
+        menuPanel.add(Box.createVerticalGlue());
+        menuPanel.add(characterLabel);
+        menuPanel.add(Box.createRigidArea(new Dimension(0 , 40)));
+        menuPanel.add(pacmanButton);
+        menuPanel.add(Box.createRigidArea(new Dimension(0 , 130)));
+        menuPanel.add(leonardoButton);
+        menuPanel.add(Box.createRigidArea(new Dimension(0 , 140)));
+        menuPanel.add(deadpoolButton);
+        menuPanel.add(Box.createRigidArea(new Dimension(0 , 140)));
+        menuPanel.add(gholamButton);
+        menuPanel.add(Box.createRigidArea(new Dimension(0 , 10)));
+        menuPanel.add(backButton);
+        menuPanel.add(Box.createVerticalGlue());
+        
+        backgroundPanel.add(bottomRightWrapper, BorderLayout.SOUTH);
+        frame.setContentPane(backgroundPanel);
+        frame.revalidate();
+        frame.repaint();
 
     }
 

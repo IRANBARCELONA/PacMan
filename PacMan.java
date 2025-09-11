@@ -1592,7 +1592,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 AudioManager.stopLooping("ph3");
             }
 
-            if(portalHealth == 76){
+            /*if(portalHealth == 76){
                 phase5StartTime = 0;
                 portalHealth = 75;
                 shakeWindow(App.frame, 15000, 10);
@@ -1606,7 +1606,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 phase5StartTime = 0;
                 portalHealth = 25;
                 shakeWindow(App.frame, 15000, 10);
-            }
+            }*/
         }
 
         if(phase == 3){
@@ -1703,7 +1703,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             Block bulletdestroy = null;
             for(Block gun : guns){
                 if(collision(gun, InfinityPortal) && gun.sname == "b"){
-                    portalHealth -= 6;
+                    portalHealth -= 25;
                     bulletdestroy = gun;
                 }
             }
