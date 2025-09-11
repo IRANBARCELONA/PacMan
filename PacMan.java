@@ -581,6 +581,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     char[] directions1 = {'U', 'U', 'U', 'U', 'R', 'R', 'L', 'D', 'R', 'R'};
     char[] directions2 = {'D', 'D', 'D', 'D', 'L', 'L', 'R', 'U', 'L', 'L'};
     char[] directions3 = {'D', 'D', 'D', 'U', 'L', 'R', 'R', 'D', 'R', 'R'};
+    char[] directions00 = {'U','D','R', 'L'};
     Random random = new Random();
     int score = 0;
     int lives = 10;
@@ -1591,7 +1592,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 AudioManager.stopLooping("ph3");
             }
 
-            if(portalHealth == 76){
+            /*if(portalHealth == 76){
                 phase5StartTime = 0;
                 portalHealth = 75;
                 shakeWindow(App.frame, 15000, 10);
@@ -1605,7 +1606,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 phase5StartTime = 0;
                 portalHealth = 25;
                 shakeWindow(App.frame, 15000, 10);
-            }
+            }*/
         }
 
         if(phase == 3){
@@ -1702,7 +1703,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             Block bulletdestroy = null;
             for(Block gun : guns){
                 if(collision(gun, InfinityPortal) && gun.sname == "b"){
-                    portalHealth -= 6;
+                    portalHealth -= 25;
                     bulletdestroy = gun;
                 }
             }
@@ -1926,35 +1927,35 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                         snake.x -= snake.velocityX;
                         snake.y -= snake.velocityY;
                         if (PacMan.x >= snake.x && PacMan.y >= snake.y) {
-                            char newDirection = directions3[random.nextInt(10)];
+                            char newDirection = directions00[random.nextInt(4)];
                             previousPositions.add(new Position(snake.x, snake.y, snake.direction));
                             if (previousPositions.size() > 100) {
                                 previousPositions.remove(0);
                             }
                             snake.updateDirection(newDirection);
                         } else if (PacMan.x >= snake.x && PacMan.y <= snake.y) {
-                            char newDirection = directions[random.nextInt(10)];
+                            char newDirection = directions00[random.nextInt(4)];
                             previousPositions.add(new Position(snake.x, snake.y, snake.direction));
                             if (previousPositions.size() > 100) {
                                 previousPositions.remove(0);
                             }
                             snake.updateDirection(newDirection);
                         } else if (PacMan.x <= snake.x && PacMan.y >= snake.y) {
-                            char newDirection = directions2[random.nextInt(10)];
+                            char newDirection = directions00[random.nextInt(4)];
                             previousPositions.add(new Position(snake.x, snake.y, snake.direction));
                             if (previousPositions.size() > 100) {
                                 previousPositions.remove(0);
                             }
                             snake.updateDirection(newDirection);
                         } else if (PacMan.x <= snake.x && PacMan.y <= snake.y) {
-                            char newDirection = directions1[random.nextInt(10)];
+                            char newDirection = directions00[random.nextInt(4)];
                             previousPositions.add(new Position(snake.x, snake.y, snake.direction));
                             if (previousPositions.size() > 100) {
                                 previousPositions.remove(0);
                             }
                             snake.updateDirection(newDirection);
                         }
-                    } else if (random.nextInt(30) == 0) {
+                    } else if (random.nextInt(4) == 0) {
                         List<Character> possibleDirections = new ArrayList<>();
 
                         if (canMove(snake, wall, 'R')) possibleDirections.add('R');
@@ -2004,7 +2005,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
                 if (previousPositions.size() > 30200) {
-                    int delay = 3000;
+                    int delay = 1500;
                     int posIndex = previousPositions.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions.size()) {
                         Position pos = previousPositions.get(posIndex);
@@ -2018,7 +2019,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     }
 
                 } else {
-                    int delay = 3000;
+                    int delay = 1500;
                     int posIndex = previousPositions.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions.size()) {
                         Position pos = previousPositions.get(posIndex);
@@ -2061,35 +2062,35 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                         snake.x -= snake.velocityX;
                         snake.y -= snake.velocityY;
                         if (PacMan.x >= snake.x && PacMan.y >= snake.y) {
-                            char newDirection = directions3[random.nextInt(10)];
+                            char newDirection = directions00[random.nextInt(4)];
                             previousPositions2.add(new Position(snake.x, snake.y, snake.direction));
                             if (previousPositions2.size() > 100) {
                                 previousPositions2.remove(0);
                             }
                             snake.updateDirection(newDirection);
                         } else if (PacMan.x >= snake.x && PacMan.y <= snake.y) {
-                            char newDirection = directions[random.nextInt(10)];
+                            char newDirection = directions00[random.nextInt(4)];
                             previousPositions2.add(new Position(snake.x, snake.y, snake.direction));
                             if (previousPositions2.size() > 100) {
                                 previousPositions2.remove(0);
                             }
                             snake.updateDirection(newDirection);
                         } else if (PacMan.x <= snake.x && PacMan.y >= snake.y) {
-                            char newDirection = directions2[random.nextInt(10)];
+                            char newDirection = directions00[random.nextInt(4)];
                             previousPositions2.add(new Position(snake.x, snake.y, snake.direction));
                             if (previousPositions2.size() > 100) {
                                 previousPositions2.remove(0);
                             }
                             snake.updateDirection(newDirection);
                         } else if (PacMan.x <= snake.x && PacMan.y <= snake.y) {
-                            char newDirection = directions1[random.nextInt(10)];
+                            char newDirection = directions00[random.nextInt(4)];
                             previousPositions2.add(new Position(snake.x, snake.y, snake.direction));
                             if (previousPositions2.size() > 100) {
                                 previousPositions2.remove(0);
                             }
                             snake.updateDirection(newDirection);
                         }
-                    } else if (random.nextInt(30) == 0) {
+                    } else if (random.nextInt(4) == 0) {
                         List<Character> possibleDirections = new ArrayList<>();
 
                         if (canMove(snake, wall, 'R')) possibleDirections.add('R');
@@ -2137,7 +2138,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
                 if (previousPositions2.size() > 30200) {
-                    int delay = 5000;
+                    int delay = 1500;
                     int posIndex = previousPositions2.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions2.size()) {
                         Position pos = previousPositions2.get(posIndex);
@@ -2151,7 +2152,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     }
 
                 } else {
-                    int delay = 3000;
+                    int delay = 1500;
                     int posIndex = previousPositions2.size() - 1 - (i * delay);
                     if (posIndex >= 0 && posIndex < previousPositions2.size()) {
                         Position pos = previousPositions2.get(posIndex);
