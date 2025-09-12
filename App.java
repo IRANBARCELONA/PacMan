@@ -1,8 +1,10 @@
+import Online.Client;
 import Online.Database;
 import Online.GameUser;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.*;
@@ -397,9 +399,9 @@ public class App {
 
     private static void startOnGame(JFrame frame){
         character = new ImageIcon("Media/Images/character.png").getImage();
-        
+
         JPanel backgroundPanel;
-        
+
         JPanel menuPanel = new JPanel();
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setOpaque(false);
@@ -425,22 +427,52 @@ public class App {
         backButton.setForeground(Color.BLACK);
 
         pacmanButton.addActionListener(e -> {
-            
+            try {
+                // اینجا مستقیماً main کلاس Client را اجرا می‌کنیم
+                Online.Client.main(new String[]{"pacman"});
+                System.out.println("Client launched!");
+            } catch (Exception ex) { // همه Exception ها را بگیریم، شامل IOException
+                ex.printStackTrace();
+                System.err.println("Failed to launch Client!");
+            }
         });
+
+
+
         leonardoButton.addActionListener(e -> {
-            
+            try {
+                // اینجا مستقیماً main کلاس Client را اجرا می‌کنیم
+                Online.Client.main(new String[]{"leonardo"});
+                System.out.println("Client launched!");
+            } catch (Exception ex) { // همه Exception ها را بگیریم، شامل IOException
+                ex.printStackTrace();
+                System.err.println("Failed to launch Client!");
+            }
         });
         deadpoolButton.addActionListener(e -> {
-            
+            try {
+                Online.Client.main(new String[]{"deadpool"});
+                System.out.println("Client launched!");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.err.println("Failed to launch Client!");
+            }
         });
         gholamButton.addActionListener(e -> {
-            
+            try {
+                // اینجا مستقیماً main کلاس Client را اجرا می‌کنیم
+                Online.Client.main(new String[]{"gholam"});
+                System.out.println("Client launched!");
+            } catch (Exception ex) { // همه Exception ها را بگیریم، شامل IOException
+                ex.printStackTrace();
+                System.err.println("Failed to launch Client!");
+            }
         });
         backButton.addActionListener(e -> {
             showMainMenu(frame);
         });
 
-        
+
         backgroundPanel = new JPanel() {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -452,7 +484,7 @@ public class App {
                 }
             }
         };
-    
+
         backgroundPanel.setLayout(new BorderLayout());
 
         menuPanel.add(Box.createVerticalGlue());
@@ -468,7 +500,7 @@ public class App {
         menuPanel.add(Box.createRigidArea(new Dimension(0 , 10)));
         menuPanel.add(backButton);
         menuPanel.add(Box.createVerticalGlue());
-        
+
         backgroundPanel.add(bottomRightWrapper, BorderLayout.SOUTH);
         frame.setContentPane(backgroundPanel);
         frame.revalidate();
