@@ -341,59 +341,52 @@ public class App {
         l1 = new ImageIcon("Media/Images/loading1.png").getImage();
         l2 = new ImageIcon("Media/Images/loading2.png").getImage();
         l3 = new ImageIcon("Media/Images/loading3.png").getImage();
-
+    
         pacmanGame = new PacMan();
-        JPanel backgroundPanel;
-        Timer timer = new Timer();
-
-        int i = 0;
-        while( i < 3){
-            switch(i){
-                case 1:
-                    lI = l1;
-                    break;
-                case 2:
-                    lI = l2;
-                    break;
-                case 3:
-                    lI = l3;
-                    break;
-                default:
-                    lI = l1;
-                    break;
-            }
-            backgroundPanel = new JPanel() {
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    if (lI != null) {
-                        g.drawImage(lI, 0, 0, getWidth(), getHeight(), this);
-                    } else {
-                        g.setColor(Color.BLACK);
-                        g.fillRect(0, 0, getWidth(), getHeight());
-                    }
+    
+        
+        JPanel backgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (lI != null) {
+                    g.drawImage(lI, 0, 0, getWidth(), getHeight(), this);
+                } else {
+                    g.drawImage(l1, 0, 0, getWidth(), getHeight(), this);
                 }
-            };
-            frame.getContentPane().removeAll();
-            frame.setContentPane(backgroundPanel);
-            frame.revalidate();
-            frame.repaint();
-
-            
-            i++;
-        }
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
+            }
+        };
+    
+        frame.setContentPane(backgroundPanel);
+        frame.revalidate();
+        frame.repaint();
+    
+        javax.swing.Timer loadingTimer = new javax.swing.Timer(500, null);
+        final int[] index = {0};
+        loadingTimer.addActionListener(e -> {
+            switch (index[0]) {
+                case 0: lI = l2; break;
+                case 1: lI = l3; break;
+            }
+            backgroundPanel.repaint();
+            index[0]++;
+    
+            if (index[0] >= 3) {
+                loadingTimer.stop();
+                javax.swing.SwingUtilities.invokeLater(() -> {
                     frame.getContentPane().removeAll();
                     AudioManager.stopLooping("menuMusic");
                     frame.add(pacmanGame);
                     frame.revalidate();
                     pacmanGame.requestFocus();
-                }
-            }, 2000);
-
+                });
+            }
+        });
+        loadingTimer.start();
+    
         isInApp = false;
     }
+    
 
     private static void startOnGame(JFrame frame){
         character = new ImageIcon("Media/Images/character.png").getImage();
