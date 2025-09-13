@@ -86,7 +86,7 @@ public class Server {
                 state.append(id).append(",").append(px).append(",").append(py).append(",").append(p.bulletCount).append(",")
                         .append(p.scifiBulletCount).append(",").append(p.haveGun).append(",").append(p.haveSwoard).
                         append(",").append(p.isDead).append(",").append(p.kills).append(",").append(p.character).append(",")
-                        .append(p.speedster).append(",").append(p.ghost).append(",").append(p.blackoutFruitCount).append(";");
+                        .append(p.speedster).append(",").append(p.ghost).append(",").append(p.blackout).append(",").append(p.lives).append(",").append(p.userName).append(";");
                 dirs.append(id).append(",").append(p.direction).append(";");
             }
         }
@@ -117,13 +117,13 @@ public class Server {
             heartSpawner.append(heart.x + "," + heart.y + ";");
         }
         for (Rectangle ghostFruit : gameState.ghostFruits) {
-            heartSpawner.append(ghostFruit.x + "," + ghostFruit.y + ";");
+            ghostFruitSpawner.append(ghostFruit.x + "," + ghostFruit.y + ";");
         }
         for (Rectangle blackoutFruit : gameState.blackoutFruits) {
-            heartSpawner.append(blackoutFruit.x + "," +  blackoutFruit.y + ";");
+            blackoutFruitSpawner.append(blackoutFruit.x + "," +  blackoutFruit.y + ";");
         }
         for (Rectangle speedsterFruit : gameState.speedsterFruits) {
-            heartSpawner.append(speedsterFruit.x + "," + speedsterFruit.y + ";");
+            speedstrFruitSpawner.append(speedsterFruit.x + "," + speedsterFruit.y + ";");
         }
 
         gameStartedStr.append(gameStarted);
@@ -172,9 +172,11 @@ public class Server {
                 // 🔹 اولین پیام باید character باشه
                 String input = in.readLine();
                 String character = "Default";
+                String UserName = null;
                 if (input != null && input.startsWith("character:")) {
                     String[] parts = input.substring(10).split(",");
                     character = parts[0];
+                    UserName = parts[2];
                 }
 
                 // 🔹 حالا پلیر رو با character بساز
@@ -184,7 +186,7 @@ public class Server {
                     x = random.nextInt(43);
                     y = random.nextInt(23);
                 } while (gameState.tileMap[y].charAt(x) != ' ');
-                gameState.addPlayer(playerId, x * 1024, y * 1024, 32, 32, "Player" + playerId, 3, character);
+                gameState.addPlayer(playerId, x * 1024, y * 1024, 32, 32, UserName + playerId, 3, character);
 
                 while ((input = in.readLine()) != null) {
                     // 🚫 اگر بازی هنوز شروع نشده هیچ ورودی پردازش نشه
@@ -229,9 +231,16 @@ public class Server {
                         String direction = parts[3];
                         gameState.updateShootingBullets(playerID, x, y, direction, 1);
                     } else if (input.startsWith("remove:")) {
-                        String[] parts = input.substring(12).split(",");
+                        String[] parts = input.substring(7).split(",");
                         int playerID = Integer.parseInt(parts[0]);
                         gameState.removePlayer(playerID);
+                    }
+                    else if (input.startsWith("blackout:")) {
+                        String[] parts = input.substring(9).split(",");
+                        int playerID = Integer.parseInt(parts[0]);
+                        for(GameState.Player player : gameState.players.values()){
+                            player.blackout = false;
+                        }
                     }
                 }
             } catch (IOException e) {

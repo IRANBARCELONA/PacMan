@@ -28,6 +28,9 @@ public class Client extends JFrame {
     private List<GameState.Bullet> shootingBullets = new ArrayList<>();
     private List<Rectangle> swoards = new ArrayList<>();
     boolean gameStarted = false;
+    boolean blackout = false;
+    int blackoutId;
+    int blackoutCounter = 0;
     private int playerId;
     private PrintWriter out;
 
@@ -96,7 +99,7 @@ public class Client extends JFrame {
 
     GameState gameState;
 
-    public Client(String serverAddress, int port, String character) throws IOException {
+    public Client(String serverAddress, int port, String character, String Username) throws IOException {
         gameState = new GameState();
         int width = gameState.tileSize * gameState.columnCount - 16;
         int height = gameState.tileSize * gameState.rowCount;
@@ -122,9 +125,9 @@ public class Client extends JFrame {
         bulletRImage = new ImageIcon("Media/Images/bulletr.png").getImage();
         bulletLImage = new ImageIcon("Media/Images/bulletl.png").getImage();
         heartImage = new ImageIcon("Media/Images/hp.png").getImage();
-        blackoutFruitImage = new ImageIcon("Media/Images/wall.png").getImage();
-        ghostFruitImage = new ImageIcon("Media/Images/wallrp.png").getImage();
-        speedsterFruitImage = new ImageIcon("Media/Images/wallph3Image.png").getImage();
+        blackoutFruitImage = new ImageIcon("Media/Images/blackoutFruit.png").getImage();
+        ghostFruitImage = new ImageIcon("Media/Images/ghosFruit.png").getImage();
+        speedsterFruitImage = new ImageIcon("Media/Images/speedsterFruit.png").getImage();
 
         pacmanImages.put("U", new ImageIcon("Media/Images/pacmanUP.png").getImage());
         pacmanImages.put("D", new ImageIcon("Media/Images/pacmanDown.png").getImage());
@@ -183,210 +186,275 @@ public class Client extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                GameState.Player player2 = players.get(playerId);
-                System.out.println(player2.x + " " + player2.y);
 
-                g.setColor(Color.BLACK);
-                g.fillRect(0, 0, getWidth(), getHeight());
+                if(blackout && playerId != blackoutId){
 
-                synchronized (walls) {
-                    for (Rectangle wall : walls) {
-                        g.drawImage(wallImage, wall.x, wall.y, wall.width, wall.height, this);
+                    g.setColor(Color.BLACK);
+                    g.fillRect(0, 0, getWidth(), getHeight());
+
+                    blackoutCounter++;
+                    if(blackoutCounter >= 600){
+                        blackout = false;
+                        blackoutCounter = 0;
+                        out.println("blackout:" + playerId);
+
                     }
-                }
-
-                synchronized (walls2) {
-                    for (Rectangle wall : walls2) {
-                        g.drawImage(wall2Image, wall.x, wall.y, wall.width, wall.height, this);
+                    else if(blackoutCounter % 10 == 0){
+                        blackout = false;
                     }
-                }
 
-                synchronized (walls3) {
-                    for (Rectangle wall : walls3) {
-                        g.drawImage(wall3Image, wall.x, wall.y, wall.width, wall.height, this);
-                    }
-                }
+                    if(players.get(playerId) != null){
+                        g.setColor(Color.WHITE);
+                        g.setFont(new Font("Playbill", Font.PLAIN, 30));
+                        g.drawString("Heart: ", tileSize, (23 - 1) * tileSize);
 
-                synchronized (guns) {
-                    for (Rectangle gun : guns) {
-                        g.drawImage(gunImage, gun.x + 6, gun.y + 6, 20, 20, this);
-                    }
-                }
-
-                synchronized (bullets) {
-                    if(!bullets.isEmpty()){
-                        for (Rectangle bullet : bullets) {
-                            g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 16, this);
+                        for ( int i = 1 ; i <= players.get(playerId).lives/2; i++ ){
+                            g.drawImage(heartImage, tileSize * (i + 2) + 8, (23 - 2) * tileSize + 13, tileSize - 10 , tileSize - 10, null);
                         }
-                    }
 
-                }
+                        g.setColor(Color.YELLOW);
+                        g.drawString("Ammo: ", tileSize * 10, (23 - 1) * tileSize);
 
-                synchronized (swoards) {
-                    if(!swoards.isEmpty()){
-                        for (Rectangle swoard : swoards) {
-                            g.drawImage(swoardImage, swoard.x + 8, swoard.y + 8, 16, 20, this);
+                        for ( int i = 1 ; i <= players.get(playerId).bulletCount; i++ ){
+                            g.drawImage(bulletUImage, tileSize * (i + 11), (23 - 2) * tileSize + 13, tileSize - 10, tileSize - 10, null);
+                        }
+
+                        g.setColor(Color.cyan);
+                        g.drawString("Scifi Ammo: ", tileSize * 20, (23 - 1) * tileSize);
+
+                        for ( int i = 1 ; i <= players.get(playerId).scifiBulletCount; i++ ){
+                            g.drawImage(sbulletUImage, tileSize * (i + 22) , (23 - 2) * tileSize + 13, tileSize - 10 , tileSize - 10, null);
                         }
                     }
                 }
+                else{
 
-                synchronized (guns) {
-                    if(!guns.isEmpty()){
+                    g.setColor(Color.BLACK);
+                    g.fillRect(0, 0, getWidth(), getHeight());
+
+                    synchronized (walls) {
+                        for (Rectangle wall : walls) {
+                            g.drawImage(wallImage, wall.x, wall.y, wall.width, wall.height, this);
+                        }
+                    }
+
+                    synchronized (walls2) {
+                        for (Rectangle wall : walls2) {
+                            g.drawImage(wall2Image, wall.x, wall.y, wall.width, wall.height, this);
+                        }
+                    }
+
+                    synchronized (walls3) {
+                        for (Rectangle wall : walls3) {
+                            g.drawImage(wall3Image, wall.x, wall.y, wall.width, wall.height, this);
+                        }
+                    }
+
+                    synchronized (guns) {
                         for (Rectangle gun : guns) {
-                            g.drawImage(gunImage, gun.x + 8, gun.y + 8, 16, 16, this);
+                            g.drawImage(gunImage, gun.x + 5, gun.y + 5, 22, 22 ,this);
                         }
                     }
 
-                }
-
-                synchronized (hearts) {
-                    if(!hearts.isEmpty()){
-                        for (Rectangle heart : hearts) {
-                            g.drawImage(heartImage, heart.x + 8, heart.y + 8, 16, 16, this);
-                        }
-                    }
-
-                }
-
-                synchronized (speedsterFruits) {
-                    if(!speedsterFruits.isEmpty()){
-                        for (Rectangle speedsterFruit : speedsterFruits) {
-                            g.drawImage(speedsterFruitImage, speedsterFruit.x + 8, speedsterFruit.y + 8, 16, 16, this);
-                        }
-                    }
-
-                }
-
-                synchronized (ghostFruits) {
-                    if(!ghostFruits.isEmpty()){
-                        for (Rectangle ghostFruit : ghostFruits) {
-                            g.drawImage(ghostFruitImage, ghostFruit.x + 8, ghostFruit.y + 8, 16, 16, this);
-                        }
-                    }
-
-                }
-
-                synchronized (blackoutFruits) {
-                    if(!blackoutFruits.isEmpty()){
-                        for (Rectangle blackoutFruit : blackoutFruits) {
-                            g.drawImage(blackoutFruitImage, blackoutFruit.x + 8, blackoutFruit.y + 8, 16, 16, this);
-                        }
-                    }
-
-                }
-
-                synchronized (bullets) {
-                    if(!bullets.isEmpty()){
-                        for (Rectangle bullet : bullets) {
-                            g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 16, this);
-                        }
-                    }
-
-                }
-
-                synchronized (scifiBullets) {
-                    if(!scifiBullets.isEmpty()){
-                        for (Rectangle scifi : scifiBullets) {
-                            g.drawImage(sbulletUImage, scifi.x + 8, scifi.y + 8, 16, 16, this);
-                        }
-                    }
-
-                }
-
-                synchronized (shootingBullets) {
-                    if(!shootingBullets.isEmpty()){
-                        for (GameState.Bullet bullet : shootingBullets) {
-                            if(bullet.direction == 'U')
-                                g.drawImage(bullet.image, bullet.x + 8, bullet.y - 12, 16, 16, this);
-                            if(bullet.direction == 'D')
-                                g.drawImage(bullet.image, bullet.x + 8, bullet.y + 20, 16, 16, this);
-                            if(bullet.direction == 'R')
-                                g.drawImage(bullet.image, bullet.x + 20, bullet.y + 8, 16, 16, this);
-                            if(bullet.direction == 'L')
-                                g.drawImage(bullet.image, bullet.x - 12, bullet.y + 8, 16, 16, this);
-
-
-                        }
-                    }
-                }
-
-                synchronized (players) {
-                    for (Map.Entry<Integer, GameState.Player> entry : players.entrySet()) {
-                        int id = entry.getKey();
-                        GameState.Player p = entry.getValue();
-                        String dir = playerDirections.getOrDefault(id, "D");
-                        Image pacmanImg = null;
-                        if(p.character.equals("leonardo")){
-
-                            if(p.haveGun){
-                                pacmanImg = leonardoGunnerImages.getOrDefault(dir, leonardoImages.get("D"));
-                            }
-                            else if(p.haveSwoard){
-                                pacmanImg = leonardoswoardImages.getOrDefault(dir, leonardoImages.get("R"));
-                            }
-                            else{
-                                pacmanImg = leonardoImages.getOrDefault(dir, leonardoImages.get("L"));
+                    synchronized (bullets) {
+                        if(!bullets.isEmpty()){
+                            for (Rectangle bullet : bullets) {
+                                g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 16, this);
                             }
                         }
-                        else if(p.character.equals("pacman")){
-                            if(p.haveGun){
-                                pacmanImg = pacmanGunnerImages.getOrDefault(dir, pacmanImages.get("D"));
-                            }
-                            else if(p.haveSwoard){
-                                pacmanImg = pacmanswoardImages.getOrDefault(dir, pacmanImages.get("R"));
-                            }
-                            else{
-                                pacmanImg = pacmanImages.getOrDefault(dir, pacmanImages.get("L"));
-                            }
-                        }
-                        else if(p.character.equals("deadpool")){
-                            if(p.haveGun){
-                                pacmanImg = deadpoolGunnerImages.getOrDefault(dir, pacmanImages.get("D"));
-                            }
-                            else if(p.haveSwoard){
-                                pacmanImg = deadpoolswoardImages.getOrDefault(dir, deadpoolImages.get("R"));
-                            }
-                            else{
-                                pacmanImg = deadpoolImages.getOrDefault(dir, deadpoolImages.get("L"));
-                            }
-                        }
-                        else if(p.character.equals("gholam")){
-
-                            if(p.haveGun){
-                                pacmanImg = gholamGunnerImages.getOrDefault(dir, gholamImages.get("D"));
-                            }
-                            else if(p.haveSwoard){
-                                pacmanImg = gholamswoardImages.getOrDefault(dir, gholamImages.get("R"));
-                            }
-                            else{
-                                pacmanImg = gholamImages.getOrDefault(dir, gholamImages.get("L"));
-                            }
-                        }
-
-
-                        g.drawImage(pacmanImg, p.x, p.y, 32, 32, this);
-
 
                     }
 
+                    synchronized (swoards) {
+                        if(!swoards.isEmpty()){
+                            for (Rectangle swoard : swoards) {
+                                g.drawImage(swoardImage, swoard.x + 6, swoard.y + 6, 20, 20, this);
+                            }
+                        }
+                    }
+
+                    synchronized (hearts) {
+                        if(!hearts.isEmpty()){
+                            for (Rectangle heart : hearts) {
+                                g.drawImage(heartImage, heart.x + 8, heart.y + 8, 16, 16, this);
+                            }
+                        }
+
+                    }
+
+                    synchronized (speedsterFruits) {
+                        if(!speedsterFruits.isEmpty()){
+                            for (Rectangle speedsterFruit : speedsterFruits) {
+                                g.drawImage(speedsterFruitImage, speedsterFruit.x + 6, speedsterFruit.y + 6, 20, 20, this);
+                            }
+                        }
+
+                    }
+
+                    synchronized (ghostFruits) {
+                        if(!ghostFruits.isEmpty()){
+                            for (Rectangle ghostFruit : ghostFruits) {
+                                g.drawImage(ghostFruitImage, ghostFruit.x + 4, ghostFruit.y + 4, 24, 24, this);
+                            }
+                        }
+                    }
+
+                    synchronized (blackoutFruits) {
+                        if(!blackoutFruits.isEmpty()){
+                            for (Rectangle blackoutFruit : blackoutFruits) {
+                                g.drawImage(blackoutFruitImage, blackoutFruit.x + 8, blackoutFruit.y + 8, 16, 16, this);
+                            }
+                        }
+
+                    }
+
+                    synchronized (bullets) {
+                        if(!bullets.isEmpty()){
+                            for (Rectangle bullet : bullets) {
+                                g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 16, this);
+                            }
+                        }
+
+                    }
+
+                    synchronized (scifiBullets) {
+                        if(!scifiBullets.isEmpty()){
+                            for (Rectangle scifi : scifiBullets) {
+                                g.drawImage(sbulletUImage, scifi.x + 8, scifi.y + 8, 16, 16, this);
+                            }
+                        }
+
+                    }
+
+                    synchronized (shootingBullets) {
+                        if(!shootingBullets.isEmpty()){
+                            for (GameState.Bullet bullet : shootingBullets) {
+                                System.out.println(bullet.vx + " " + bullet.vy);
+                                if(bullet.direction == 'U')
+                                    g.drawImage(bulletUImage, bullet.x + 8, bullet.y - 12, 16, 16, this);
+                                if(bullet.direction == 'D')
+                                    g.drawImage(bullet.image, bullet.x + 8, bullet.y + 20, 16, 16, this);
+                                if(bullet.direction == 'R')
+                                    g.drawImage(bullet.image, bullet.x + 20, bullet.y + 8, 16, 16, this);
+                                if(bullet.direction == 'L')
+                                    g.drawImage(bullet.image, bullet.x - 12, bullet.y + 8, 16, 16, this);
+
+
+                            }
+                        }
+                    }
+
+                    synchronized (players) {
+                        for (Map.Entry<Integer, GameState.Player> entry : players.entrySet()) {
+                            int id = entry.getKey();
+                            GameState.Player p = entry.getValue();
+
+                            if(p.blackout){
+                                blackout = true;
+                                blackoutId = id;
+                            }
+
+                            String dir = playerDirections.getOrDefault(id, "D");
+                            Image pacmanImg = null;
+                            if(p.character.equals("leonardo")){
+
+                                if(p.haveGun){
+                                    pacmanImg = leonardoGunnerImages.getOrDefault(dir, leonardoImages.get("D"));
+                                }
+                                else if(p.haveSwoard){
+                                    pacmanImg = leonardoswoardImages.getOrDefault(dir, leonardoImages.get("R"));
+                                }
+                                else{
+                                    pacmanImg = leonardoImages.getOrDefault(dir, leonardoImages.get("L"));
+                                }
+                            }
+                            else if(p.character.equals("pacman")){
+                                if(p.haveGun){
+                                    pacmanImg = pacmanGunnerImages.getOrDefault(dir, pacmanImages.get("D"));
+                                }
+                                else if(p.haveSwoard){
+                                    pacmanImg = pacmanswoardImages.getOrDefault(dir, pacmanImages.get("R"));
+                                }
+                                else{
+                                    pacmanImg = pacmanImages.getOrDefault(dir, pacmanImages.get("L"));
+                                }
+                            }
+                            else if(p.character.equals("deadpool")){
+                                if(p.haveGun){
+                                    pacmanImg = deadpoolGunnerImages.getOrDefault(dir, pacmanImages.get("D"));
+                                }
+                                else if(p.haveSwoard){
+                                    pacmanImg = deadpoolswoardImages.getOrDefault(dir, deadpoolImages.get("R"));
+                                }
+                                else{
+                                    pacmanImg = deadpoolImages.getOrDefault(dir, deadpoolImages.get("L"));
+                                }
+                            }
+                            else if(p.character.equals("gholam")){
+
+                                if(p.haveGun){
+                                    pacmanImg = gholamGunnerImages.getOrDefault(dir, gholamImages.get("D"));
+                                }
+                                else if(p.haveSwoard){
+                                    pacmanImg = gholamswoardImages.getOrDefault(dir, gholamImages.get("R"));
+                                }
+                                else{
+                                    pacmanImg = gholamImages.getOrDefault(dir, gholamImages.get("L"));
+                                }
+                            }
+
+
+                            g.drawImage(pacmanImg, p.x, p.y, 32, 32, this);
+                            g.setFont(new Font("Playbill", Font.PLAIN, 25));
+                            g.setColor(Color.WHITE);
+                            g.drawString(p.userName.substring(0, p.userName.length()-1), p.x, p.y);
+                        }
+
+                    }
+
+                    if(players.get(playerId) != null){
+                        g.setColor(Color.WHITE);
+                        g.setFont(new Font("Playbill", Font.PLAIN, 30));
+                        g.drawString("Heart: ", tileSize, (23 - 1) * tileSize);
+
+                        for ( int i = 1 ; i <= players.get(playerId).lives/2; i++ ){
+                            g.drawImage(heartImage, tileSize * (i + 2) + 8, (23 - 2) * tileSize + 13, tileSize - 10 , tileSize - 10, null);
+                        }
+
+                        g.setColor(Color.YELLOW);
+                        g.drawString("Ammo: ", tileSize * 10, (23 - 1) * tileSize);
+
+                        for ( int i = 1 ; i <= players.get(playerId).bulletCount; i++ ){
+                            g.drawImage(bulletUImage, tileSize * (i + 11), (23 - 2) * tileSize + 13, tileSize - 10, tileSize - 10, null);
+                        }
+
+                        g.setColor(Color.cyan);
+                        g.drawString("Scifi Ammo: ", tileSize * 20, (23 - 1) * tileSize);
+
+                        for ( int i = 1 ; i <= players.get(playerId).scifiBulletCount; i++ ){
+                            g.drawImage(sbulletUImage, tileSize * (i + 22) , (23 - 2) * tileSize + 13, tileSize - 10 , tileSize - 10, null);
+                        }
+                    }
+
+
+                    GameState.Player player = players.get(playerId);
+                    if(player.isDead){
+                        g.drawImage(new ImageIcon("Media/Images/youdied.jpg").getImage(), 0, 0, getWidth(), getHeight(), this);
+                        g.setColor(Color.WHITE);
+                        g.setFont(new Font("Arial", Font.BOLD, 150));
+                        g.drawString(Integer.toString(players.size()), 900, 470);
+                        g.drawString(Integer.toString(player.kills), 760, 660);
+                        out.println("remove:" + "," + playerId);
+                    }
+                    if(players.size() == 1 && gameStarted){
+                        g.drawImage(new ImageIcon("Media/Images/youwin.jpg").getImage(), 0, 0, getWidth(), getHeight(), this);
+                        g.setColor(Color.WHITE);
+                        g.setFont(new Font("Arial", Font.BOLD, 150));
+                        g.drawString(Integer.toString(player.kills), 760, 660);
+                        out.println("remove:" + "," + playerId);
+                    }
                 }
-                GameState.Player player = players.get(playerId);
-                if(player.isDead){
-                    g.drawImage(new ImageIcon("Media/Images/youdied.jpg").getImage(), 0, 0, getWidth(), getHeight(), this);
-                    g.setColor(Color.WHITE);
-                    g.setFont(new Font("Arial", Font.BOLD, 150));
-                    g.drawString(Integer.toString(players.size()), 900, 470);
-                    g.drawString(Integer.toString(player.kills), 760, 660);
-                    out.println("remove:" + "," + playerId);
-                }
-                System.out.println(gameStarted);
-                if(players.size() == 1 && gameStarted){
-                    g.drawImage(new ImageIcon("Media/Images/youwin.jpg").getImage(), 0, 0, getWidth(), getHeight(), this);
-                    g.setColor(Color.WHITE);
-                    g.setFont(new Font("Arial", Font.BOLD, 150));
-                    g.drawString(Integer.toString(player.kills), 760, 660);
-                    out.println("remove:" + "," + playerId);
-                }
+
 
 
             }
@@ -401,7 +469,7 @@ public class Client extends JFrame {
         playerId = Integer.parseInt(in.readLine());
         System.out.println("Connected as player " + playerId);
 
-        out.println("character:" + character + "," + playerId);
+        out.println("character:" + character + "," + playerId + "," + Username);
 
         Thread receiveThread = new Thread(() -> {
             try {
@@ -517,8 +585,11 @@ public class Client extends JFrame {
             String character = p[9];
             boolean ghost = Boolean.parseBoolean(p[10]);
             boolean speedster = Boolean.parseBoolean(p[11]);
-            int blackoutFruitCount  = Integer.parseInt(p[12]);
-            GameState.Player player = gameState.new Player(x, y , tileSize, tileSize, "Player", 3);
+            boolean blackout  = Boolean.parseBoolean(p[12]);
+            int lives  = Integer.parseInt(p[13]);
+            lives = lives / 2;
+            String username = p[14];
+            GameState.Player player = gameState.new Player(x, y , tileSize, tileSize, username, lives);
             player.bulletCount = bulletCount;
             player.scifiBulletCount = scifiBulletCount;
             player.haveGun = haveGun;
@@ -528,7 +599,7 @@ public class Client extends JFrame {
             player.character = character;
             player.ghost = ghost;
             player.speedster = speedster;
-            player.blackoutFruitCount = blackoutFruitCount;
+            player.blackout = blackout;
             newPlayers.put(id, player);
         }
         synchronized (players) {
@@ -846,7 +917,13 @@ public class Client extends JFrame {
     }
 
     public static void main(String[] args) throws IOException {
-        new Client("localhost", 12345, "gholam");
+        new Client("localhost", 12345, "deadpool", "parsa");
+        new Client("localhost", 12345, "leonardo", "parsa");
+        new Client("localhost", 12345, "pacman", "parsa");
+        //new Client("localhost", 12345, args[0], args[1]);
+        //new Client("localhost", 12345, args[0], args[1]);
+
+
 
     }
 }

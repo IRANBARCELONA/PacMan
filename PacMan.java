@@ -237,6 +237,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
         }
+
         void reset() {
             this.x = this.startX;
             this.y = this.startY;
@@ -1448,6 +1449,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
 
     }
+
     public boolean isPacManCanMove(Block block, char direction) {
         for (Block wall : walls) {
             if(direction == 'U' && wall.y == block.y + tileSize){
@@ -2541,7 +2543,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-
     public void destroySnake(){
         AudioManager.play("deadSnake");
         for(int i = 0; i < snake.size(); i++){
@@ -2855,35 +2856,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         score = 0;
         lives = 5;
         phase = 1;
-    }
-
-    public void changePacManMusic() {
-        System.out.println(mainSound);
-        if(mainSound) {
-            if (foods.size() > 30 && mainMusicCounter == 0) {
-                AudioManager.playLooping("normalMove");
-                mainMusicCounter = 1;
-            }
-            else if (foods.size() <= 30 && foods.size() > 20 && mainMusicCounter == 1) {
-                AudioManager.changeMusic("normalMove" , "spurtMove1");
-                mainMusicCounter = 2;
-            }
-            else if (foods.size() <= 20 && foods.size() > 12 && mainMusicCounter == 2) {
-                AudioManager.changeMusic("spurtMove1" , "spurtMove2");
-                mainMusicCounter = 3;
-            }
-            else if (foods.size() <= 12 && foods.size() > 5 && mainMusicCounter == 3) {
-                AudioManager.changeMusic("spurtMove2" , "spurtMove3");
-                mainMusicCounter = 4;
-            }
-            else if (foods.size() <= 5 && mainMusicCounter == 4) {
-                AudioManager.changeMusic("spurtMove3" , "spurtMove4");
-                mainMusicCounter = 5;
-            }
-            else if (foods.size() == 0){
-                AudioManager.stop("spurtMove4");
-            }
-        }
     }
 
     public void ghostValnrability(){

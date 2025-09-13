@@ -149,26 +149,24 @@ public class LoginPage extends JFrame {
     }
 
     public void Auth() {
-        /*this.Username = usernameField.getText();
+        this.Username = usernameField.getText();
         this.Password = new String(passwordField.getPassword());
 
         if (this.Username.equals("") || this.Password.equals("")) {
             JOptionPane.showMessageDialog(this, "Error: Empty Fields");
         } else {
 
- */
+
             App.user = db.getGameUserByUsername(this.Username);
 
-            /*if (App.user != null) {
+            if (App.user != null) {
                 this.UserName = true;
                 String currectPass = App.user.getPassword();
                 if (currectPass.equals(this.Password)) {
                     this.PassWord = true;
                 }
             }
-*/
-            PassWord = true;
-            UserName = true;
+
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
                 @Override
@@ -182,15 +180,14 @@ public class LoginPage extends JFrame {
                 }
             }, 2000);
 
-            /*if (UserName && !PassWord) {
+            if (UserName && !PassWord) {
                 JOptionPane.showMessageDialog(this, "Incorrect Password");
             }
             if (!UserName) {
                 JOptionPane.showMessageDialog(this, "Error: User Not Found");
             }
 
-        }*/
-
+        }
 
     }
 }

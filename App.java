@@ -422,7 +422,7 @@ public class App {
         pacmanButton.addActionListener(e -> {
             try {
                 // اینجا مستقیماً main کلاس Client را اجرا می‌کنیم
-                Online.Client.main(new String[]{"pacman"});
+                Online.Client.main(new String[]{"pacman" , user.getUsername()});
                 System.out.println("Client launched!");
             } catch (Exception ex) { // همه Exception ها را بگیریم، شامل IOException
                 ex.printStackTrace();
@@ -435,7 +435,7 @@ public class App {
         leonardoButton.addActionListener(e -> {
             try {
                 // اینجا مستقیماً main کلاس Client را اجرا می‌کنیم
-                Online.Client.main(new String[]{"leonardo"});
+                Online.Client.main(new String[]{"leonardo" , user.getUsername()});
                 System.out.println("Client launched!");
             } catch (Exception ex) { // همه Exception ها را بگیریم، شامل IOException
                 ex.printStackTrace();
@@ -444,7 +444,7 @@ public class App {
         });
         deadpoolButton.addActionListener(e -> {
             try {
-                Online.Client.main(new String[]{"deadpool"});
+                Online.Client.main(new String[]{"deadpool" , user.getUsername()});
                 System.out.println("Client launched!");
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -453,8 +453,7 @@ public class App {
         });
         gholamButton.addActionListener(e -> {
             try {
-                // اینجا مستقیماً main کلاس Client را اجرا می‌کنیم
-                Online.Client.main(new String[]{"gholam"});
+                Online.Client.main(new String[]{"gholam", user.getUsername()});
                 System.out.println("Client launched!");
             } catch (Exception ex) { // همه Exception ها را بگیریم، شامل IOException
                 ex.printStackTrace();

@@ -28,7 +28,7 @@ public class GameState {
         public int kills = 0;
         public boolean speedster = false;
         public boolean ghost = false;
-        public int blackoutFruitCount = 0;
+        public boolean blackout = false;
 
         Player(int x, int y, int width, int height, String userName, int lives) {
             this.startX = x;
@@ -56,7 +56,13 @@ public class GameState {
             this.x += velocityX;
             this.y += velocityY;
             for(Rectangle wall : walls){
-                if(collision(new Rectangle(this.x/32, this.y/32, this.width, this.height), wall)) {
+                int m = 32;
+                int n = 32;
+                if(this.speedster){
+                    m = this.width - 2;
+                    n = this.height - 2;
+                }
+                if(collision(new Rectangle(this.x/32, this.y/32, m, n), wall)) {
                     this.x -= this.velocityX;
                     this.y -= this.velocityY;
                     this.direction = prevDirection;
@@ -68,19 +74,35 @@ public class GameState {
         }
 
         void updateVelocity() {
-
-            if (this.direction == 'U') {
-                this.velocityX = 0;
-                this.velocityY = -tileSize/8 * 16;
-            } else if (this.direction == 'D') {
-                this.velocityX = 0;
-                this.velocityY = tileSize/8 * 16;
-            } else if (this.direction == 'L') {
-                this.velocityX = -tileSize/8 * 16;
-                this.velocityY = 0;
-            } else if (this.direction == 'R') {
-                this.velocityX = tileSize/8 * 16;
-                this.velocityY = 0;
+            if(this.speedster){
+                if (this.direction == 'U') {
+                    this.velocityX = 0;
+                    this.velocityY = -tileSize * 4;
+                } else if (this.direction == 'D') {
+                    this.velocityX = 0;
+                    this.velocityY = tileSize * 4;
+                } else if (this.direction == 'L') {
+                    this.velocityX = -tileSize * 4;
+                    this.velocityY = 0;
+                } else if (this.direction == 'R') {
+                    this.velocityX = tileSize * 4;
+                    this.velocityY = 0;
+                }
+            }
+            else{
+                if (this.direction == 'U') {
+                    this.velocityX = 0;
+                    this.velocityY = -tileSize * 2;
+                } else if (this.direction == 'D') {
+                    this.velocityX = 0;
+                    this.velocityY = 2 * tileSize;
+                } else if (this.direction == 'L') {
+                    this.velocityX = -tileSize * 2;
+                    this.velocityY = 0;
+                } else if (this.direction == 'R') {
+                    this.velocityX = tileSize * 2;
+                    this.velocityY = 0;
+                }
             }
 
         }
@@ -90,7 +112,13 @@ public class GameState {
             y += velocityY;
 
             for(Rectangle wall : walls){
-                if(collision(new Rectangle(this.x/32, this.y/32, this.width, this.height), wall)) {
+                int m = 32;
+                int n = 32;
+                if(this.speedster){
+                    m = this.width - 2;
+                    n = this.height - 2;
+                }
+                if(collision(new Rectangle(this.x/32, this.y/32, m, n), wall)) {
                     this.x -= this.velocityX;
                     this.y -= this.velocityY;
                     break;
@@ -136,8 +164,6 @@ public class GameState {
     public static int rowCount = 24;
     public static int columnCount = 44;
     public static int tileSize = 32;
-    boolean s;
-    int pi;
     List<Rectangle> walls = new ArrayList<>();
     List<Bullet> shootingBullets = new ArrayList<>();
     List<Rectangle> swoards = new ArrayList<>();
@@ -208,23 +234,22 @@ public class GameState {
     }
 
 
-    private Map<Integer, Player> players;
+    public Map<Integer, Player> players;
 
     public synchronized void addPlayer(int playerId, int x, int y, int width, int height, String username, int lives, String character) {
         players.put(playerId, new Player(x, y, width, height, username, lives));
         Player player = players.get(playerId);
         players.get(playerId).id = playerId;
         player.character = character;
-        System.out.println(player.character);
         if(player.character.equals("pacman")) {
             player.lives *= 2;
         }
         if(player.character.equals("deadpool")) {
             player.haveGun = true;
+            player.bulletCount = 3;
         }
         if(player.character.equals("leonardo")) {
             player.haveSwoard = true;
-            player.bulletCount = 3;
         }
     }
 
@@ -479,7 +504,8 @@ public class GameState {
             List<Rectangle> removeghostFruits = new ArrayList<>();
             for(Rectangle ghostfruit : ghostFruits){
                 if(collision(new Rectangle(ghostfruit.x * 32, ghostfruit.y * 32, tileSize, tileSize), new Rectangle(player.x/32, player.y/32, player.width, player.height))){
-                    removeHeart.add(ghostfruit);
+                    removeghostFruits.add(ghostfruit);
+                    player.ghost = true;
                 }
             }
             ghostFruits.removeAll(removeghostFruits);
@@ -488,7 +514,7 @@ public class GameState {
             for(Rectangle blackoutFruit : blackoutFruits){
                 if(collision(new Rectangle(blackoutFruit.x * 32, blackoutFruit.y * 32, tileSize, tileSize), new Rectangle(player.x/32, player.y/32, player.width, player.height))){
                     removeblackoutFruit.add(blackoutFruit);
-                    player.lives++;
+                    player.blackout = true;
                 }
             }
             blackoutFruits.removeAll(removeblackoutFruit);
@@ -497,7 +523,7 @@ public class GameState {
             for(Rectangle speedsterFruit : speedsterFruits){
                 if(collision(new Rectangle(speedsterFruit.x * 32, speedsterFruit.y * 32, tileSize, tileSize), new Rectangle(player.x/32, player.y/32, player.width, player.height))){
                     removespeedsterFruit.add(speedsterFruit);
-                    player.lives++;
+                    player.speedster = true;
                 }
             }
             speedsterFruits.removeAll(removespeedsterFruit);
@@ -506,9 +532,9 @@ public class GameState {
     }
 
     private void swoardSpawner(){
-        if(swoards.size() <= 5){
+        if(swoards.size() <= 3){
             Random rand = new Random();
-            int gunSpawner = rand.nextInt(1000);
+            int gunSpawner = rand.nextInt(800);
             if(gunSpawner == 41){
                 int x;
                 int y;
@@ -524,7 +550,7 @@ public class GameState {
     private void bulletSpawner(){
         if(bullets.size() <= 10){
             Random rand = new Random();
-            int gunSpawner = rand.nextInt(200);
+            int gunSpawner = rand.nextInt(300);
             if(gunSpawner == 41){
                 int x;
                 int y;
@@ -541,7 +567,7 @@ public class GameState {
     private void scifiBulletSpawner(){
         if(scifiBullets.size() <= 5){
             Random rand = new Random();
-            int gunSpawner = rand.nextInt(1000);
+            int gunSpawner = rand.nextInt(100);
             if(gunSpawner == 41){
                 int x;
                 int y;
@@ -557,9 +583,9 @@ public class GameState {
     }
 
     private void gunSpawner(){
-        if(guns.size() <= 5){
+        if(guns.size() <= 3){
             Random rand = new Random();
-            int gunSpawner = rand.nextInt(1000);
+            int gunSpawner = rand.nextInt(800);
             if(gunSpawner == 41){
                 int x;
                 int y;
@@ -576,7 +602,7 @@ public class GameState {
     private void heartSpawner(){
         if(hearts.size() <= 5){
             Random rand = new Random();
-            int gunSpawner = rand.nextInt(1000);
+            int gunSpawner = rand.nextInt(800);
             if(gunSpawner == 41){
                 int x;
                 int y;
@@ -591,7 +617,7 @@ public class GameState {
     }
 
     private void speedsterFruitSpawner(){
-        if(speedsterFruits.size() <= 5){
+        if(speedsterFruits.size() <= 1){
             Random rand = new Random();
             int gunSpawner = rand.nextInt(1000);
             if(gunSpawner == 41){
@@ -608,7 +634,7 @@ public class GameState {
     }
 
     private void blackoutFruitSpawner(){
-        if(blackoutFruits.size() <= 5){
+        if(blackoutFruits.size() <= 1){
             Random rand = new Random();
             int gunSpawner = rand.nextInt(1000);
             if(gunSpawner == 41){
@@ -625,7 +651,7 @@ public class GameState {
     }
 
     private void ghostFruitSpawner(){
-        if(ghostFruits.size() <= 5){
+        if(ghostFruits.size() <= 1){
             Random rand = new Random();
             int gunSpawner = rand.nextInt(1000);
             if(gunSpawner == 41){
@@ -642,7 +668,6 @@ public class GameState {
     }
 
     private void hitHandler(Player player){
-        System.out.println(player.lives);
         if(player.lives > 0){
             Random random = new Random();
             int x, y;
@@ -652,6 +677,10 @@ public class GameState {
             }while(tileMap[y].charAt(x) != ' ');
             player.x = 1024;
             player.y = 1024;
+            player.haveSwoard = false;
+            player.haveGun = false;
+            player.speedster = false;
+            player.ghost = false;
             players.put(player.id, player);
         }
         else{
