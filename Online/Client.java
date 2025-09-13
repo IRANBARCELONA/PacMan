@@ -22,8 +22,12 @@ public class Client extends JFrame {
     private List<Rectangle> bullets = new ArrayList<>();
     private List<Rectangle> scifiBullets = new ArrayList<>();
     private List<Rectangle> hearts = new ArrayList<>();
+    private List<Rectangle> speedsterFruits = new ArrayList<>();
+    private List<Rectangle> ghostFruits = new ArrayList<>();
+    private List<Rectangle> blackoutFruits = new ArrayList<>();
     private List<GameState.Bullet> shootingBullets = new ArrayList<>();
     private List<Rectangle> swoards = new ArrayList<>();
+    boolean gameStarted = false;
     private int playerId;
     private PrintWriter out;
 
@@ -61,6 +65,9 @@ public class Client extends JFrame {
     private Image swoardImage;
     private Image gunImage;
     private Image heartImage;
+    private Image speedsterFruitImage;
+    private Image ghostFruitImage;
+    private Image blackoutFruitImage;
     private Image sbulletUImage;
     private Image sbulletDImage;
     private Image sbulletRImage;
@@ -114,8 +121,11 @@ public class Client extends JFrame {
         bulletDImage = new ImageIcon("Media/Images/bulletd.png").getImage();
         bulletRImage = new ImageIcon("Media/Images/bulletr.png").getImage();
         bulletLImage = new ImageIcon("Media/Images/bulletl.png").getImage();
-
         heartImage = new ImageIcon("Media/Images/hp.png").getImage();
+        blackoutFruitImage = new ImageIcon("Media/Images/wall.png").getImage();
+        ghostFruitImage = new ImageIcon("Media/Images/wallrp.png").getImage();
+        speedsterFruitImage = new ImageIcon("Media/Images/wallph3Image.png").getImage();
+
         pacmanImages.put("U", new ImageIcon("Media/Images/pacmanUP.png").getImage());
         pacmanImages.put("D", new ImageIcon("Media/Images/pacmanDown.png").getImage());
         pacmanImages.put("L", new ImageIcon("Media/Images/pacmanLeft.png").getImage());
@@ -150,10 +160,10 @@ public class Client extends JFrame {
         gholamGunnerImages.put("D", new ImageIcon("Media/Images/gholamgunu.jpg").getImage());
         gholamGunnerImages.put("R", new ImageIcon("Media/Images/gholamgunu.jpg").getImage());
         gholamGunnerImages.put("L", new ImageIcon("Media/Images/gholamgunu.jpg").getImage());
-        gholamswoardImages.put("U", new ImageIcon("Media/Images/gholamSwoardu.jpg").getImage());
-        gholamswoardImages.put("D", new ImageIcon("Media/Images/gholamSwoardu.jpg").getImage());
-        gholamswoardImages.put("R", new ImageIcon("Media/Images/gholamSwoardu.jpg").getImage());
-        gholamswoardImages.put("L", new ImageIcon("Media/Images/gholamSwoardu.jpg").getImage());
+        gholamswoardImages.put("U", new ImageIcon("Media/Images/gholamSwoardr.jpg").getImage());
+        gholamswoardImages.put("D", new ImageIcon("Media/Images/gholamSwoardr.jpg").getImage());
+        gholamswoardImages.put("R", new ImageIcon("Media/Images/gholamSwoardr.jpg").getImage());
+        gholamswoardImages.put("L", new ImageIcon("Media/Images/gholamSwoardr.jpg").getImage());
 
         leonardoImages.put("U", new ImageIcon("Media/Images/leonardoU.jpg").getImage());
         leonardoImages.put("D", new ImageIcon("Media/Images/leonardoU.jpg").getImage());
@@ -164,15 +174,17 @@ public class Client extends JFrame {
         leonardoGunnerImages.put("R", new ImageIcon("Media/Images/leonardogunr.jpg").getImage());
         leonardoGunnerImages.put("L", new ImageIcon("Media/Images/leonardogunl.jpg").getImage());
         leonardoswoardImages.put("U", new ImageIcon("Media/Images/leonardoswoardu.jpg").getImage());
-        leonardoswoardImages.put("D", new ImageIcon("Media/Images/leonardoSworadu.jpg").getImage());
-        leonardoswoardImages.put("R", new ImageIcon("Media/Images/leonardoSworadu.jpg").getImage());
-        leonardoswoardImages.put("L", new ImageIcon("Media/Images/leonardoSworadu.jpg").getImage());
+        leonardoswoardImages.put("D", new ImageIcon("Media/Images/leonardoswoardu.jpg").getImage());
+        leonardoswoardImages.put("R", new ImageIcon("Media/Images/leonardoswoardu.jpg").getImage());
+        leonardoswoardImages.put("L", new ImageIcon("Media/Images/leonardoswoardu.jpg").getImage());
 
 
         JPanel gamePanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
+                GameState.Player player2 = players.get(playerId);
+                System.out.println(player2.x + " " + player2.y);
 
                 g.setColor(Color.BLACK);
                 g.fillRect(0, 0, getWidth(), getHeight());
@@ -204,7 +216,7 @@ public class Client extends JFrame {
                 synchronized (bullets) {
                     if(!bullets.isEmpty()){
                         for (Rectangle bullet : bullets) {
-                            g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 20, this);
+                            g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 16, this);
                         }
                     }
 
@@ -221,7 +233,7 @@ public class Client extends JFrame {
                 synchronized (guns) {
                     if(!guns.isEmpty()){
                         for (Rectangle gun : guns) {
-                            g.drawImage(gunImage, gun.x + 8, gun.y + 8, 16, 20, this);
+                            g.drawImage(gunImage, gun.x + 8, gun.y + 8, 16, 16, this);
                         }
                     }
 
@@ -230,7 +242,34 @@ public class Client extends JFrame {
                 synchronized (hearts) {
                     if(!hearts.isEmpty()){
                         for (Rectangle heart : hearts) {
-                            g.drawImage(heartImage, heart.x + 8, heart.y + 8, 16, 20, this);
+                            g.drawImage(heartImage, heart.x + 8, heart.y + 8, 16, 16, this);
+                        }
+                    }
+
+                }
+
+                synchronized (speedsterFruits) {
+                    if(!speedsterFruits.isEmpty()){
+                        for (Rectangle speedsterFruit : speedsterFruits) {
+                            g.drawImage(speedsterFruitImage, speedsterFruit.x + 8, speedsterFruit.y + 8, 16, 16, this);
+                        }
+                    }
+
+                }
+
+                synchronized (ghostFruits) {
+                    if(!ghostFruits.isEmpty()){
+                        for (Rectangle ghostFruit : ghostFruits) {
+                            g.drawImage(ghostFruitImage, ghostFruit.x + 8, ghostFruit.y + 8, 16, 16, this);
+                        }
+                    }
+
+                }
+
+                synchronized (blackoutFruits) {
+                    if(!blackoutFruits.isEmpty()){
+                        for (Rectangle blackoutFruit : blackoutFruits) {
+                            g.drawImage(blackoutFruitImage, blackoutFruit.x + 8, blackoutFruit.y + 8, 16, 16, this);
                         }
                     }
 
@@ -239,7 +278,7 @@ public class Client extends JFrame {
                 synchronized (bullets) {
                     if(!bullets.isEmpty()){
                         for (Rectangle bullet : bullets) {
-                            g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 20, this);
+                            g.drawImage(bulletUImage, bullet.x + 8, bullet.y + 8, 16, 16, this);
                         }
                     }
 
@@ -248,7 +287,7 @@ public class Client extends JFrame {
                 synchronized (scifiBullets) {
                     if(!scifiBullets.isEmpty()){
                         for (Rectangle scifi : scifiBullets) {
-                            g.drawImage(sbulletUImage, scifi.x + 8, scifi.y + 8, 16, 20, this);
+                            g.drawImage(sbulletUImage, scifi.x + 8, scifi.y + 8, 16, 16, this);
                         }
                     }
 
@@ -277,7 +316,7 @@ public class Client extends JFrame {
                         GameState.Player p = entry.getValue();
                         String dir = playerDirections.getOrDefault(id, "D");
                         Image pacmanImg = null;
-                        /*if(p.character.equals("leonardo")){
+                        if(p.character.equals("leonardo")){
 
                             if(p.haveGun){
                                 pacmanImg = leonardoGunnerImages.getOrDefault(dir, leonardoImages.get("D"));
@@ -322,17 +361,8 @@ public class Client extends JFrame {
                             else{
                                 pacmanImg = gholamImages.getOrDefault(dir, gholamImages.get("L"));
                             }
-                        }*/
+                        }
 
-                        if(p.haveGun){
-                            pacmanImg = pacmanGunnerImages.getOrDefault(dir, pacmanImages.get("D"));
-                        }
-                        else if(p.haveSwoard){
-                            pacmanImg = pacmanswoardImages.getOrDefault(dir, pacmanImages.get("R"));
-                        }
-                        else{
-                            pacmanImg = pacmanImages.getOrDefault(dir, pacmanImages.get("L"));
-                        }
 
                         g.drawImage(pacmanImg, p.x, p.y, 32, 32, this);
 
@@ -346,6 +376,14 @@ public class Client extends JFrame {
                     g.setColor(Color.WHITE);
                     g.setFont(new Font("Arial", Font.BOLD, 150));
                     g.drawString(Integer.toString(players.size()), 900, 470);
+                    g.drawString(Integer.toString(player.kills), 760, 660);
+                    out.println("remove:" + "," + playerId);
+                }
+                System.out.println(gameStarted);
+                if(players.size() == 1 && gameStarted){
+                    g.drawImage(new ImageIcon("Media/Images/youwin.jpg").getImage(), 0, 0, getWidth(), getHeight(), this);
+                    g.setColor(Color.WHITE);
+                    g.setFont(new Font("Arial", Font.BOLD, 150));
                     g.drawString(Integer.toString(player.kills), 760, 660);
                     out.println("remove:" + "," + playerId);
                 }
@@ -393,7 +431,18 @@ public class Client extends JFrame {
                     else if (line.startsWith("heartSpawner:")) {
                         UpdateHeartSpawner(line.substring(13));
                     }
-
+                    else if (line.startsWith("blackoutFruitSpawner:")) {
+                        UpdateblackoutFruitSpawner(line.substring(21));
+                    }
+                    else if (line.startsWith("speedsterFruitSpawner:")) {
+                        UpdatespeedsterFruitSpawner(line.substring(22));
+                    }
+                    else if (line.startsWith("ghostFruitSpawner:")) {
+                        UpdateghostFruitSpawner(line.substring(18));
+                    }
+                    else if (line.startsWith("gamestarted:")) {
+                        gameStarted = Boolean.parseBoolean(line.substring(12));
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -466,6 +515,9 @@ public class Client extends JFrame {
             boolean dead = Boolean.parseBoolean(p[7]);
             int kills  = Integer.parseInt(p[8]);
             String character = p[9];
+            boolean ghost = Boolean.parseBoolean(p[10]);
+            boolean speedster = Boolean.parseBoolean(p[11]);
+            int blackoutFruitCount  = Integer.parseInt(p[12]);
             GameState.Player player = gameState.new Player(x, y , tileSize, tileSize, "Player", 3);
             player.bulletCount = bulletCount;
             player.scifiBulletCount = scifiBulletCount;
@@ -474,6 +526,9 @@ public class Client extends JFrame {
             player.isDead = dead;
             player.kills = kills;
             player.character = character;
+            player.ghost = ghost;
+            player.speedster = speedster;
+            player.blackoutFruitCount = blackoutFruitCount;
             newPlayers.put(id, player);
         }
         synchronized (players) {
@@ -620,6 +675,66 @@ public class Client extends JFrame {
         }
     }
 
+    private void UpdateblackoutFruitSpawner(String data) {
+        List<Rectangle> newSwoards = new ArrayList<>();
+        String[] parts = data.split(";");
+        for (String part : parts) {
+            if (part.isEmpty())
+                continue;
+            String[] p = part.split(",");
+            int x = Integer.parseInt(p[0]) * 32;
+            int y = Integer.parseInt(p[1]) * 32;
+
+
+            newSwoards.add(new Rectangle(x, y, tileSize, tileSize));
+        }
+
+        synchronized (blackoutFruits) {
+            blackoutFruits.clear();
+            blackoutFruits.addAll(newSwoards);
+        }
+    }
+
+    private void UpdatespeedsterFruitSpawner(String data) {
+        List<Rectangle> newSwoards = new ArrayList<>();
+        String[] parts = data.split(";");
+        for (String part : parts) {
+            if (part.isEmpty())
+                continue;
+            String[] p = part.split(",");
+            int x = Integer.parseInt(p[0]) * 32;
+            int y = Integer.parseInt(p[1]) * 32;
+
+
+            newSwoards.add(new Rectangle(x, y, tileSize, tileSize));
+        }
+
+        synchronized (speedsterFruits) {
+            speedsterFruits.clear();
+            speedsterFruits.addAll(newSwoards);
+        }
+    }
+
+    private void UpdateghostFruitSpawner(String data) {
+        List<Rectangle> newSwoards = new ArrayList<>();
+        String[] parts = data.split(";");
+        for (String part : parts) {
+            if (part.isEmpty())
+                continue;
+            String[] p = part.split(",");
+            int x = Integer.parseInt(p[0]) * 32;
+            int y = Integer.parseInt(p[1]) * 32;
+
+
+            newSwoards.add(new Rectangle(x, y, tileSize, tileSize));
+        }
+
+        synchronized (ghostFruits) {
+            ghostFruits.clear();
+            ghostFruits.addAll(newSwoards);
+        }
+    }
+
     private void UpdateScifiSpawner(String data) {
         List<Rectangle> newSwoards = new ArrayList<>();
         String[] parts = data.split(";");
@@ -731,7 +846,7 @@ public class Client extends JFrame {
     }
 
     public static void main(String[] args) throws IOException {
-        new Client("localhost", 12345, "pacman");
+        new Client("localhost", 12345, "gholam");
 
     }
 }

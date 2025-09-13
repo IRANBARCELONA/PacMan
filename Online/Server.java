@@ -12,6 +12,10 @@ public class Server {
     private static int playerCounter = 0;
     private static final Map<Integer, PrintWriter> clientsOut = new ConcurrentHashMap<>();
 
+    // 🔹 کنترل وضعیت بازی
+    private static boolean acceptingPlayers = true;
+    private static boolean gameStarted = false;
+
     public static void main(String[] args) {
         ExecutorService pool = Executors.newCachedThreadPool();
 
@@ -22,15 +26,35 @@ public class Server {
             ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
             scheduler.scheduleAtFixedRate(() -> {
                 try {
-                    gameState.update();
+                    if (gameStarted) {
+                        gameState.update();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 broadcastGameState();
             }, 0, 25, TimeUnit.MILLISECONDS);
 
+            // ⏳ بعد از 2 ثانیه بازی شروع بشه و ورودی بسته بشه
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    acceptingPlayers = false;
+                    gameStarted = true;
+                    System.out.println("✅ بازی شروع شد. بازیکن جدید پذیرفته نمی‌شود.");
+                }
+            }, 3000);
+
+            // پذیرش کلاینت‌ها
             while (true) {
                 Socket clientSocket = serverSocket.accept();
+                if (!acceptingPlayers) {
+                    // 🚫 بعد از 2 ثانیه ورود بازیکن جدید ممنوع
+                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                    out.println("SERVER_FULL");
+                    clientSocket.close();
+                    continue;
+                }
                 int playerId = playerCounter++;
                 pool.execute(new ClientHandler(clientSocket, playerId));
             }
@@ -48,7 +72,11 @@ public class Server {
         StringBuilder bulletSpawner = new StringBuilder("bulletSpawner:");
         StringBuilder ScifiBulletSpawner = new StringBuilder("ScifiBulletSpawner:");
         StringBuilder heartSpawner = new StringBuilder("heartSpawner:");
+        StringBuilder blackoutFruitSpawner = new StringBuilder("blackoutFruitSpawner:");
+        StringBuilder ghostFruitSpawner = new StringBuilder("ghostFruitSpawner:");
+        StringBuilder speedstrFruitSpawner = new StringBuilder("speedsterFruitSpawner:");
         StringBuilder gunSpawner = new StringBuilder("gunSpawner:");
+        StringBuilder gameStartedStr = new StringBuilder("gamestarted:");
 
         for (int id : gameState.getPlayers().keySet()) {
             GameState.Player p = gameState.getPlayer(id);
@@ -57,7 +85,8 @@ public class Server {
                 int py = p.y / gameState.tileSize;
                 state.append(id).append(",").append(px).append(",").append(py).append(",").append(p.bulletCount).append(",")
                         .append(p.scifiBulletCount).append(",").append(p.haveGun).append(",").append(p.haveSwoard).
-                        append(",").append(p.isDead).append(",").append(p.kills).append(",").append(p.character).append(";");
+                        append(",").append(p.isDead).append(",").append(p.kills).append(",").append(p.character).append(",")
+                        .append(p.speedster).append(",").append(p.ghost).append(",").append(p.blackoutFruitCount).append(";");
                 dirs.append(id).append(",").append(p.direction).append(";");
             }
         }
@@ -87,6 +116,17 @@ public class Server {
         for (Rectangle heart : gameState.hearts) {
             heartSpawner.append(heart.x + "," + heart.y + ";");
         }
+        for (Rectangle ghostFruit : gameState.ghostFruits) {
+            heartSpawner.append(ghostFruit.x + "," + ghostFruit.y + ";");
+        }
+        for (Rectangle blackoutFruit : gameState.blackoutFruits) {
+            heartSpawner.append(blackoutFruit.x + "," +  blackoutFruit.y + ";");
+        }
+        for (Rectangle speedsterFruit : gameState.speedsterFruits) {
+            heartSpawner.append(speedsterFruit.x + "," + speedsterFruit.y + ";");
+        }
+
+        gameStartedStr.append(gameStarted);
 
         String stateStr = state.toString();
         String dirsStr = dirs.toString();
@@ -100,6 +140,15 @@ public class Server {
             out.println(ScifiBulletSpawner);
             out.println(gunSpawner);
             out.println(heartSpawner);
+            out.println(speedstrFruitSpawner);
+            out.println(ghostFruitSpawner);
+            out.println(blackoutFruitSpawner);
+            out.println(gameStartedStr);
+
+            // 🔒 اگر بازی هنوز شروع نشده
+            if (!gameStarted) {
+                out.println("WAITING_FOR_START");
+            }
         }
     }
 
@@ -135,9 +184,14 @@ public class Server {
                     x = random.nextInt(43);
                     y = random.nextInt(23);
                 } while (gameState.tileMap[y].charAt(x) != ' ');
-                gameState.addPlayer(playerId, x * 1024, y * 1024, 31, 31, "Player" + playerId, 3, character);
+                gameState.addPlayer(playerId, x * 1024, y * 1024, 32, 32, "Player" + playerId, 3, character);
 
                 while ((input = in.readLine()) != null) {
+                    // 🚫 اگر بازی هنوز شروع نشده هیچ ورودی پردازش نشه
+                    if (!gameStarted) {
+                        continue;
+                    }
+
                     if (input.startsWith("DIR:")) {
                         char dirChar = ' ';
                         String dir = input.substring(4);

@@ -26,6 +26,9 @@ public class GameState {
         public String character = "pacman";
         public boolean isDead = false;
         public int kills = 0;
+        public boolean speedster = false;
+        public boolean ghost = false;
+        public int blackoutFruitCount = 0;
 
         Player(int x, int y, int width, int height, String userName, int lives) {
             this.startX = x;
@@ -68,10 +71,10 @@ public class GameState {
 
             if (this.direction == 'U') {
                 this.velocityX = 0;
-                this.velocityY = -tileSize/8 * 18;
+                this.velocityY = -tileSize/8 * 16;
             } else if (this.direction == 'D') {
                 this.velocityX = 0;
-                this.velocityY = tileSize/8 * 18;
+                this.velocityY = tileSize/8 * 16;
             } else if (this.direction == 'L') {
                 this.velocityX = -tileSize/8 * 16;
                 this.velocityY = 0;
@@ -139,6 +142,9 @@ public class GameState {
     List<Bullet> shootingBullets = new ArrayList<>();
     List<Rectangle> swoards = new ArrayList<>();
     List<Rectangle> hearts = new ArrayList<>();
+    List<Rectangle> ghostFruits = new ArrayList<>();
+    List<Rectangle> speedsterFruits = new ArrayList<>();
+    List<Rectangle> blackoutFruits = new ArrayList<>();
     List<Rectangle> bullets = new ArrayList<>();
     List<Rectangle> scifiBullets = new ArrayList<>();
     List<Rectangle> guns = new ArrayList<>();
@@ -319,6 +325,9 @@ public class GameState {
         bulletSpawner();
         scifiBulletSpawner();
         heartSpawner();
+        speedsterFruitSpawner();
+        blackoutFruitSpawner();
+        ghostFruitSpawner();
         gunSpawner();
     }
 
@@ -467,81 +476,168 @@ public class GameState {
             }
             hearts.removeAll(removeHeart);
 
+            List<Rectangle> removeghostFruits = new ArrayList<>();
+            for(Rectangle ghostfruit : ghostFruits){
+                if(collision(new Rectangle(ghostfruit.x * 32, ghostfruit.y * 32, tileSize, tileSize), new Rectangle(player.x/32, player.y/32, player.width, player.height))){
+                    removeHeart.add(ghostfruit);
+                }
+            }
+            ghostFruits.removeAll(removeghostFruits);
+
+            List<Rectangle> removeblackoutFruit = new ArrayList<>();
+            for(Rectangle blackoutFruit : blackoutFruits){
+                if(collision(new Rectangle(blackoutFruit.x * 32, blackoutFruit.y * 32, tileSize, tileSize), new Rectangle(player.x/32, player.y/32, player.width, player.height))){
+                    removeblackoutFruit.add(blackoutFruit);
+                    player.lives++;
+                }
+            }
+            blackoutFruits.removeAll(removeblackoutFruit);
+
+            List<Rectangle> removespeedsterFruit = new ArrayList<>();
+            for(Rectangle speedsterFruit : speedsterFruits){
+                if(collision(new Rectangle(speedsterFruit.x * 32, speedsterFruit.y * 32, tileSize, tileSize), new Rectangle(player.x/32, player.y/32, player.width, player.height))){
+                    removespeedsterFruit.add(speedsterFruit);
+                    player.lives++;
+                }
+            }
+            speedsterFruits.removeAll(removespeedsterFruit);
+
         }
     }
 
     private void swoardSpawner(){
-        Random rand = new Random();
-        int gunSpawner = rand.nextInt(100);
-        if(gunSpawner == 41){
-            int x;
-            int y;
-            do{
-                x = rand.nextInt(43);
-                y = rand.nextInt(23);
-            } while(tileMap[y].charAt(x) != ' ');
+        if(swoards.size() <= 5){
+            Random rand = new Random();
+            int gunSpawner = rand.nextInt(1000);
+            if(gunSpawner == 41){
+                int x;
+                int y;
+                do{
+                    x = rand.nextInt(43);
+                    y = rand.nextInt(23);
+                } while(tileMap[y].charAt(x) != ' ');
 
-            swoards.add(new Rectangle(x, y, tileSize, tileSize));
+                swoards.add(new Rectangle(x, y, tileSize, tileSize));}
         }
     }
 
     private void bulletSpawner(){
-        Random rand = new Random();
-        int gunSpawner = rand.nextInt(100);
-        if(gunSpawner == 41){
-            int x;
-            int y;
-            do{
-                x = rand.nextInt(43);
-                y = rand.nextInt(23);
-            } while(tileMap[y].charAt(x) != ' ');
+        if(bullets.size() <= 10){
+            Random rand = new Random();
+            int gunSpawner = rand.nextInt(200);
+            if(gunSpawner == 41){
+                int x;
+                int y;
+                do{
+                    x = rand.nextInt(43);
+                    y = rand.nextInt(23);
+                } while(tileMap[y].charAt(x) != ' ');
 
-            bullets.add(new Rectangle(x, y, tileSize, tileSize));
+                bullets.add(new Rectangle(x, y, tileSize, tileSize));
+            }
         }
     }
 
     private void scifiBulletSpawner(){
-        Random rand = new Random();
-        int gunSpawner = rand.nextInt(100);
-        if(gunSpawner == 41){
-            int x;
-            int y;
-            do{
-                x = rand.nextInt(43);
-                y = rand.nextInt(23);
-            } while(tileMap[y].charAt(x) != ' ');
+        if(scifiBullets.size() <= 5){
+            Random rand = new Random();
+            int gunSpawner = rand.nextInt(1000);
+            if(gunSpawner == 41){
+                int x;
+                int y;
+                do{
+                    x = rand.nextInt(43);
+                    y = rand.nextInt(23);
+                } while(tileMap[y].charAt(x) != ' ');
 
-            scifiBullets.add(new Rectangle(x, y, tileSize, tileSize));
+                scifiBullets.add(new Rectangle(x, y, tileSize, tileSize));
+            }
         }
+
     }
 
     private void gunSpawner(){
-        Random rand = new Random();
-        int gunSpawner = rand.nextInt(100);
-        if(gunSpawner == 41){
-            int x;
-            int y;
-            do{
-                x = rand.nextInt(43);
-                y = rand.nextInt(23);
-            } while(tileMap[y].charAt(x) != ' ');
+        if(guns.size() <= 5){
+            Random rand = new Random();
+            int gunSpawner = rand.nextInt(1000);
+            if(gunSpawner == 41){
+                int x;
+                int y;
+                do{
+                    x = rand.nextInt(43);
+                    y = rand.nextInt(23);
+                } while(tileMap[y].charAt(x) != ' ');
 
-            guns.add(new Rectangle(x, y, tileSize, tileSize));
+                guns.add(new Rectangle(x, y, tileSize, tileSize));
+            }
         }
     }
 
     private void heartSpawner(){
-        Random rand = new Random();
-        int gunSpawner = rand.nextInt(100);
-        if(gunSpawner == 41){
-            int x;
-            int y;
-            do{
-                x = rand.nextInt(43);
-                y = rand.nextInt(23);
-            } while(tileMap[y].charAt(x) != ' ');
+        if(hearts.size() <= 5){
+            Random rand = new Random();
+            int gunSpawner = rand.nextInt(1000);
+            if(gunSpawner == 41){
+                int x;
+                int y;
+                do{
+                    x = rand.nextInt(43);
+                    y = rand.nextInt(23);
+                } while(tileMap[y].charAt(x) != ' ');
 
-            hearts.add(new Rectangle(x, y, tileSize, tileSize));
+                hearts.add(new Rectangle(x, y, tileSize, tileSize));
+            }
+        }
+    }
+
+    private void speedsterFruitSpawner(){
+        if(speedsterFruits.size() <= 5){
+            Random rand = new Random();
+            int gunSpawner = rand.nextInt(1000);
+            if(gunSpawner == 41){
+                int x;
+                int y;
+                do{
+                    x = rand.nextInt(43);
+                    y = rand.nextInt(23);
+                } while(tileMap[y].charAt(x) != ' ');
+
+                speedsterFruits.add(new Rectangle(x, y, tileSize, tileSize));
+            }
+        }
+    }
+
+    private void blackoutFruitSpawner(){
+        if(blackoutFruits.size() <= 5){
+            Random rand = new Random();
+            int gunSpawner = rand.nextInt(1000);
+            if(gunSpawner == 41){
+                int x;
+                int y;
+                do{
+                    x = rand.nextInt(43);
+                    y = rand.nextInt(23);
+                } while(tileMap[y].charAt(x) != ' ');
+
+                blackoutFruits.add(new Rectangle(x, y, tileSize, tileSize));
+            }
+        }
+    }
+
+    private void ghostFruitSpawner(){
+        if(ghostFruits.size() <= 5){
+            Random rand = new Random();
+            int gunSpawner = rand.nextInt(1000);
+            if(gunSpawner == 41){
+                int x;
+                int y;
+                do{
+                    x = rand.nextInt(43);
+                    y = rand.nextInt(23);
+                } while(tileMap[y].charAt(x) != ' ');
+
+                ghostFruits.add(new Rectangle(x, y, tileSize, tileSize));
+            }
         }
     }
 
